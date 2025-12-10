@@ -29,3 +29,4 @@ data class SyncProgress(
     val message: String? = null,
 )
 
+

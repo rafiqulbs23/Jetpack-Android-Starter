@@ -16,17 +16,16 @@
 
 package com.aristopharma.v2.feature.home.data.repository
 
-import com.aristopharma.v2.core.preferences.data.UserPreferencesDataSource
-import com.aristopharma.v2.core.room.data.LocalDataSource
 import com.aristopharma.v2.core.room.model.SyncAction
+import com.aristopharma.v2.core.sync.SyncProgress
 import com.aristopharma.v2.core.utils.suspendRunCatching
+import com.aristopharma.v2.feature.home.data.datasource.local.HomeLocalDataSource
+import com.aristopharma.v2.feature.home.data.datasource.remote.HomeRemoteDataSource
 import com.aristopharma.v2.feature.home.data.mapper.toDomain
 import com.aristopharma.v2.feature.home.data.mapper.toEntity
 import com.aristopharma.v2.feature.home.data.mapper.toFirebase
 import com.aristopharma.v2.feature.home.domain.model.Jetpack
 import com.aristopharma.v2.feature.home.domain.repository.HomeRepository
-import com.aristopharma.v2.firebase.firestore.data.FirebaseDataSource
-import com.aristopharma.v2.core.sync.SyncProgress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -38,13 +37,11 @@ import javax.inject.Inject
  * Implementation of [HomeRepository] for the data layer.
  *
  * @param localDataSource The local data source for Room database operations.
- * @param preferencesDataSource The preferences data source for user preferences.
- * @param firebaseDataSource The Firebase data source for remote operations.
+ * @param remoteDataSource The remote data source for Firebase operations.
  */
 class HomeRepositoryImpl @Inject constructor(
-    private val localDataSource: LocalDataSource,
-    private val preferencesDataSource: UserPreferencesDataSource,
-    private val firebaseDataSource: FirebaseDataSource,
+    private val localDataSource: HomeLocalDataSource,
+    private val remoteDataSource: HomeRemoteDataSource,
 ) : HomeRepository {
 
     /**
@@ -53,10 +50,8 @@ class HomeRepositoryImpl @Inject constructor(
      * @return A [Flow] of a list of domain [Jetpack] models.
      */
     override fun getJetpacks(): Flow<List<Jetpack>> {
-        return flow {
-            val userId = preferencesDataSource.getUserIdOrThrow()
-            val jetpacks = localDataSource.getJetpacks(userId).map { it.toDomain() }
-            emitAll(jetpacks)
+        return localDataSource.getJetpacks().map { entities ->
+            entities.map { it.toDomain() }
         }
     }
 
@@ -78,12 +73,12 @@ class HomeRepositoryImpl @Inject constructor(
      */
     override suspend fun createOrUpdateJetpack(jetpack: Jetpack): Result<Unit> {
         return suspendRunCatching {
-            val userId = preferencesDataSource.getUserIdOrThrow()
+           // val userId = localDataSource.getUserId()
             localDataSource.upsertJetpack(
                 jetpack
                     .toEntity()
                     .copy(
-                        userId = userId,
+                        userId = "",
                         lastUpdated = System.currentTimeMillis(),
                         needsSync = true,
                         syncAction = SyncAction.UPSERT,
@@ -111,10 +106,8 @@ class HomeRepositoryImpl @Inject constructor(
      */
     override suspend fun sync(): Flow<SyncProgress> {
         return flow {
-            val userId = preferencesDataSource.getUserIdOrThrow()
-
             // Unsynced jetpacks
-            val unsyncedJetpacks = localDataSource.getUnsyncedJetpacks(userId)
+            val unsyncedJetpacks = localDataSource.getUnsyncedJetpacks()
             val totalUnsyncedJetpacks = unsyncedJetpacks.size
             Timber.d("Syncing $totalUnsyncedJetpacks unsynced jetpacks")
 
@@ -123,7 +116,7 @@ class HomeRepositoryImpl @Inject constructor(
                 when (unsyncedJetpack.syncAction) {
                     SyncAction.UPSERT -> {
                         Timber.d("Syncing create/update jetpack: ${unsyncedJetpack.id}")
-                        firebaseDataSource.createOrUpdateJetpack(
+                        remoteDataSource.createOrUpdateJetpack(
                             unsyncedJetpack
                                 .toFirebase()
                                 .copy(
@@ -133,7 +126,7 @@ class HomeRepositoryImpl @Inject constructor(
                     }
 
                     SyncAction.DELETE -> {
-                        firebaseDataSource.deleteJetpack(
+                        remoteDataSource.deleteJetpack(
                             unsyncedJetpack
                                 .toFirebase()
                                 .copy(
@@ -158,8 +151,9 @@ class HomeRepositoryImpl @Inject constructor(
             }
 
             // Remote jetpacks
-            val lastSynced = localDataSource.getLatestUpdateTimestamp(userId)
-            val remoteJetpacks = firebaseDataSource.pullJetpacks(userId, lastSynced)
+            val userId = ""//localDataSource.getUserId()
+            val lastSynced = localDataSource.getLatestUpdateTimestamp()
+            val remoteJetpacks = remoteDataSource.pullJetpacks(userId, lastSynced)
             val totalRemoteJetpacks = remoteJetpacks.size
             Timber.d("Syncing $totalRemoteJetpacks remote jetpacks")
 

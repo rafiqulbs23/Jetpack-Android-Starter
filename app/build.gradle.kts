@@ -17,6 +17,7 @@
 @file:Suppress("UnstableApiUsage")
 
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
+import java.io.File
 import java.io.FileInputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -29,6 +30,7 @@ plugins {
     alias(libs.plugins.jetpack.dagger.hilt)
     alias(libs.plugins.jetpack.firebase)
     alias(libs.plugins.jetpack.dokka)
+    alias(libs.plugins.kotlin.compose.compiler)
 }
 
 android {
@@ -122,6 +124,7 @@ dependencies {
     implementation(project(":feature:home"))
     implementation(project(":feature:profile"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:splash"))
 
     // ... Analytics
     implementation(project(":firebase:analytics"))

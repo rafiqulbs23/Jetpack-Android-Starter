@@ -16,12 +16,12 @@
 
 package com.aristopharma.v2.feature.profile.data.repository
 
-import com.aristopharma.v2.core.preferences.data.UserPreferencesDataSource
 import com.aristopharma.v2.core.utils.suspendRunCatching
+import com.aristopharma.v2.feature.profile.data.datasource.local.ProfileLocalDataSource
+import com.aristopharma.v2.feature.profile.data.datasource.remote.ProfileRemoteDataSource
 import com.aristopharma.v2.feature.profile.data.mapper.toProfile
 import com.aristopharma.v2.feature.profile.domain.model.Profile
 import com.aristopharma.v2.feature.profile.domain.repository.ProfileRepository
-import com.aristopharma.v2.firebase.auth.data.AuthDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -29,12 +29,12 @@ import javax.inject.Inject
 /**
  * Implementation of the ProfileRepository interface.
  *
- * @property userPreferencesDataSource Data source for user preferences.
- * @property authDataSource Data source for authentication.
+ * @param localDataSource The local data source for profile data.
+ * @param remoteDataSource The remote data source for authentication operations.
  */
 class ProfileRepositoryImpl @Inject constructor(
-    private val userPreferencesDataSource: UserPreferencesDataSource,
-    private val authDataSource: AuthDataSource,
+    private val localDataSource: ProfileLocalDataSource,
+    private val remoteDataSource: ProfileRemoteDataSource,
 ) : ProfileRepository {
 
     /**
@@ -43,7 +43,7 @@ class ProfileRepositoryImpl @Inject constructor(
      * @return A Flow emitting the user profile.
      */
     override fun getProfile(): Flow<Profile> {
-        return userPreferencesDataSource.getUserDataPreferences().map { it.toProfile() }
+        return localDataSource.getUserProfile().map { it.toProfile() }
     }
 
     /**
@@ -53,8 +53,8 @@ class ProfileRepositoryImpl @Inject constructor(
      */
     override suspend fun signOut(): Result<Unit> {
         return suspendRunCatching {
-            authDataSource.signOut()
-            userPreferencesDataSource.resetUserPreferences()
+            remoteDataSource.signOut()
+            localDataSource.resetUserPreferences()
         }
     }
 }

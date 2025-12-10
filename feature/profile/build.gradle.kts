@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.jetpack.ui.library)
     alias(libs.plugins.jetpack.dagger.hilt)
     alias(libs.plugins.jetpack.dokka)
+    alias(libs.plugins.kotlin.compose.compiler)
 }
 
 android {
@@ -28,6 +29,10 @@ dependencies {
     // ... Modules
     implementation(project(":core:ui"))
     implementation(project(":core:preferences"))
+    implementation(project(":core:network"))
+    
+    // ... Retrofit
+    implementation(libs.retrofit.core)
     
     // ... Firebase
     implementation(project(":firebase:auth"))

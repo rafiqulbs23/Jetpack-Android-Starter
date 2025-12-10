@@ -71,7 +71,7 @@ import com.aristopharma.v2.core.ui.components.JetpackTopAppBarWithAvatar
 import com.aristopharma.v2.core.ui.theme.GradientColors
 import com.aristopharma.v2.core.ui.theme.LocalGradientColors
 import com.aristopharma.v2.core.ui.utils.SnackbarAction
-import com.aristopharma.v2.feature.settings.ui.SettingsDialog
+import com.aristopharma.v2.feature.settings.presentation.component.SettingsDialog
 
 /**
  * Composable function that represents the Jetpack Compose application.

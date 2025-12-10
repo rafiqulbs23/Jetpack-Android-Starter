@@ -17,6 +17,7 @@
 package com.aristopharma.v2.feature.profile.data.mapper
 
 import com.aristopharma.v2.core.preferences.model.UserDataPreferences
+import com.aristopharma.v2.core.preferences.model.PreferencesUserProfile
 import com.aristopharma.v2.feature.profile.domain.model.Profile
 
 /**
@@ -30,4 +31,17 @@ fun UserDataPreferences.toProfile(): Profile {
         profilePictureUri = profilePictureUriString,
     )
 }
+
+/**
+ * Extension function to convert PreferencesUserProfile to Profile.
+ *
+ * @return A Profile object with data from PreferencesUserProfile.
+ */
+fun PreferencesUserProfile.toProfile(): Profile {
+    return Profile(
+        userName = userName.ifEmpty { "Anonymous" },
+        profilePictureUri = profilePictureUriString,
+    )
+}
+
 

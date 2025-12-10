@@ -113,3 +113,4 @@ navController.navigateToProfileScreen()
 - **Easier Testing**: Navigation logic can be tested independently
 - **Better Maintainability**: Changes to navigation structure are localized
 
+

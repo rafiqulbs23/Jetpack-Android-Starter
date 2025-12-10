@@ -16,14 +16,14 @@
 
 package com.aristopharma.v2.feature.settings.data.repository
 
-import com.aristopharma.v2.core.preferences.data.UserPreferencesDataSource
 import com.aristopharma.v2.core.utils.suspendRunCatching
+import com.aristopharma.v2.feature.settings.data.datasource.local.SettingsLocalDataSource
+import com.aristopharma.v2.feature.settings.data.datasource.remote.SettingsRemoteDataSource
 import com.aristopharma.v2.feature.settings.data.mapper.asSettings
 import com.aristopharma.v2.feature.settings.data.mapper.toDarkThemeConfigPreferences
 import com.aristopharma.v2.feature.settings.domain.model.DarkThemeConfig
 import com.aristopharma.v2.feature.settings.domain.model.Settings
 import com.aristopharma.v2.feature.settings.domain.repository.SettingsRepository
-import com.aristopharma.v2.firebase.auth.data.AuthDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -31,12 +31,12 @@ import javax.inject.Inject
 /**
  * Implementation of [SettingsRepository].
  *
- * @property authDataSource Data source for authentication.
- * @property userPreferencesDataSource Data source for user preferences.
+ * @param localDataSource The local data source for settings data.
+ * @param remoteDataSource The remote data source for authentication operations.
  */
 class SettingsRepositoryImpl @Inject constructor(
-    private val authDataSource: AuthDataSource,
-    private val userPreferencesDataSource: UserPreferencesDataSource,
+    private val localDataSource: SettingsLocalDataSource,
+    private val remoteDataSource: SettingsRemoteDataSource,
 ) : SettingsRepository {
 
     /**
@@ -45,7 +45,7 @@ class SettingsRepositoryImpl @Inject constructor(
      * @return A Flow emitting the user's settings.
      */
     override fun getSettings(): Flow<Settings> =
-        userPreferencesDataSource.getUserDataPreferences().map { it.asSettings() }
+        localDataSource.getUserSettings().map { it.asSettings() }
 
     /**
      * Sets the dark theme configuration.
@@ -55,7 +55,7 @@ class SettingsRepositoryImpl @Inject constructor(
      */
     override suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig): Result<Unit> {
         return suspendRunCatching {
-            userPreferencesDataSource.setDarkThemeConfig(
+            localDataSource.setDarkThemeConfig(
                 darkThemeConfig.toDarkThemeConfigPreferences(),
             )
         }
@@ -69,7 +69,7 @@ class SettingsRepositoryImpl @Inject constructor(
      */
     override suspend fun setDynamicColorPreference(useDynamicColor: Boolean): Result<Unit> {
         return suspendRunCatching {
-            userPreferencesDataSource.setDynamicColorPreference(useDynamicColor)
+            localDataSource.setDynamicColorPreference(useDynamicColor)
         }
     }
 
@@ -80,8 +80,8 @@ class SettingsRepositoryImpl @Inject constructor(
      */
     override suspend fun signOut(): Result<Unit> {
         return suspendRunCatching {
-            authDataSource.signOut()
-            userPreferencesDataSource.resetUserPreferences()
+            remoteDataSource.signOut()
+            localDataSource.resetUserPreferences()
         }
     }
 }

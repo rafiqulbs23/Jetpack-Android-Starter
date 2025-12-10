@@ -31,3 +31,4 @@ const val TERMS_OF_SERVICE_URL = "https://atick.dev/terms"
  */
 const val FEEDBACK_URL = "https://forms.gle/muBdaD2HxJLtWo9a8"
 
+

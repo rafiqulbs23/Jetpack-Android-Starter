@@ -17,6 +17,7 @@
 plugins {
     alias(libs.plugins.jetpack.ui.library)
     alias(libs.plugins.jetpack.dokka)
+    alias(libs.plugins.kotlin.compose.compiler)
 }
 
 android {
@@ -31,5 +32,6 @@ dependencies {
     implementation(project(":feature:auth"))
     implementation(project(":feature:home"))
     implementation(project(":feature:profile"))
+    implementation(project(":feature:splash"))
 }
 

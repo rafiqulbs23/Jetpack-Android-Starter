@@ -17,23 +17,21 @@
 package com.aristopharma.v2.feature.auth.data.repository
 
 import android.app.Activity
-import com.aristopharma.v2.core.preferences.data.UserPreferencesDataSource
-import com.aristopharma.v2.core.preferences.model.PreferencesUserProfile
 import com.aristopharma.v2.core.utils.suspendRunCatching
+import com.aristopharma.v2.feature.auth.data.datasource.local.AuthLocalDataSource
+import com.aristopharma.v2.feature.auth.data.datasource.remote.AuthRemoteDataSource
 import com.aristopharma.v2.feature.auth.domain.repository.AuthRepository
-import com.aristopharma.v2.firebase.auth.data.AuthDataSource
-import com.aristopharma.v2.firebase.auth.model.AuthUser
 import javax.inject.Inject
 
 /**
  * Implementation of the [AuthRepository] interface responsible for handling authentication operations.
  *
- * @param authDataSource The data source for authentication operations.
- * @param userPreferencesDataSource The data source for user preferences.
+ * @param remoteDataSource The remote data source for authentication operations.
+ * @param localDataSource The local data source for storing user data.
  */
 class AuthRepositoryImpl @Inject constructor(
-    private val authDataSource: AuthDataSource,
-    private val userPreferencesDataSource: UserPreferencesDataSource,
+    private val remoteDataSource: AuthRemoteDataSource,
+    private val localDataSource: AuthLocalDataSource,
 ) : AuthRepository {
 
     /**
@@ -45,8 +43,8 @@ class AuthRepositoryImpl @Inject constructor(
      */
     override suspend fun signInWithSavedCredentials(activity: Activity): Result<Unit> {
         return suspendRunCatching {
-            val user = authDataSource.signInWithSavedCredentials(activity)
-            userPreferencesDataSource.setUserProfile(user.asPreferencesUserProfile())
+            val user = remoteDataSource.signInWithSavedCredentials(activity)
+            localDataSource.saveUserProfile(user)
         }
     }
 
@@ -63,8 +61,8 @@ class AuthRepositoryImpl @Inject constructor(
         password: String,
     ): Result<Unit> {
         return suspendRunCatching {
-            val user = authDataSource.signInWithEmailAndPassword(email, password)
-            userPreferencesDataSource.setUserProfile(user.asPreferencesUserProfile())
+            val user = remoteDataSource.signInWithEmailAndPassword(email, password)
+            localDataSource.saveUserProfile(user)
         }
     }
 
@@ -85,8 +83,8 @@ class AuthRepositoryImpl @Inject constructor(
         activity: Activity,
     ): Result<Unit> {
         return suspendRunCatching {
-            val user = authDataSource.registerWithEmailAndPassword(name, email, password, activity)
-            userPreferencesDataSource.setUserProfile(user.asPreferencesUserProfile())
+            val user = remoteDataSource.registerWithEmailAndPassword(name, email, password, activity)
+            localDataSource.saveUserProfile(user)
         }
     }
 
@@ -99,8 +97,8 @@ class AuthRepositoryImpl @Inject constructor(
      */
     override suspend fun signInWithGoogle(activity: Activity): Result<Unit> {
         return suspendRunCatching {
-            val user = authDataSource.signInWithGoogle(activity)
-            userPreferencesDataSource.setUserProfile(user.asPreferencesUserProfile())
+            val user = remoteDataSource.signInWithGoogle(activity)
+            localDataSource.saveUserProfile(user)
         }
     }
 
@@ -113,18 +111,9 @@ class AuthRepositoryImpl @Inject constructor(
      */
     override suspend fun registerWithGoogle(activity: Activity): Result<Unit> {
         return suspendRunCatching {
-            val user = authDataSource.registerWithGoogle(activity)
-            userPreferencesDataSource.setUserProfile(user.asPreferencesUserProfile())
+            val user = remoteDataSource.registerWithGoogle(activity)
+            localDataSource.saveUserProfile(user)
         }
     }
-
-    /**
-     * Convert an [AuthUser] to a [PreferencesUserProfile].
-     */
-    private fun AuthUser.asPreferencesUserProfile() = PreferencesUserProfile(
-        id = id,
-        userName = name,
-        profilePictureUriString = profilePictureUri?.toString(),
-    )
 }
 

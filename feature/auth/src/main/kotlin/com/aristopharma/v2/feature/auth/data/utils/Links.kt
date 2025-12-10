@@ -26,3 +26,4 @@ const val PRIVACY_POLICY_URL = "https://atick.dev/privacy"
  */
 const val TERMS_OF_SERVICE_URL = "https://atick.dev/terms"
 
+

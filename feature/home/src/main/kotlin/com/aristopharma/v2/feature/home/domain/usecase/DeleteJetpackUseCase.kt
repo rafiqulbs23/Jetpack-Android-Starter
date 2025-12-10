@@ -38,3 +38,4 @@ class DeleteJetpackUseCase @Inject constructor(
         repository.markJetpackAsDeleted(jetpack)
 }
 
+

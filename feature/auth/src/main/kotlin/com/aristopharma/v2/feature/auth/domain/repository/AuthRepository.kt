@@ -77,3 +77,4 @@ interface AuthRepository {
     suspend fun registerWithGoogle(activity: Activity): Result<Unit>
 }
 
+

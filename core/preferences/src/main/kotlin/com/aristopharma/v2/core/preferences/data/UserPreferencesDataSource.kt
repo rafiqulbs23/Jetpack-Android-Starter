@@ -31,7 +31,7 @@ interface UserPreferencesDataSource {
      *
      * @return A [Flow] of [PreferencesUserProfile].
      */
-    fun getUserDataPreferences(): Flow<UserDataPreferences>
+     fun getUserDataPreferences(): Flow<UserDataPreferences>
 
     /**
      * Retrieves the user ID or throws an exception if the user is not authenticated.

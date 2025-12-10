@@ -24,11 +24,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.aristopharma.v2.core.ui.utils.SnackbarAction
-import com.aristopharma.v2.feature.auth.ui.signin.SignInScreen
-import com.aristopharma.v2.feature.auth.ui.signup.SignUpScreen
-import com.aristopharma.v2.feature.home.ui.home.HomeScreen
-import com.aristopharma.v2.feature.home.ui.item.ItemScreen
-import com.aristopharma.v2.feature.profile.ui.ProfileScreen
+import com.aristopharma.v2.feature.splash.presentation.screens.SplashScreen
+import com.aristopharma.v2.feature.auth.presentation.screen.signin.SignInScreen
+import com.aristopharma.v2.feature.auth.presentation.screen.signup.SignUpScreen
+import com.aristopharma.v2.feature.home.presentation.screen.home.HomeScreen
+import com.aristopharma.v2.feature.home.presentation.screen.item.ItemScreen
+import com.aristopharma.v2.feature.profile.presentation.screen.ProfileScreen
 import kotlin.reflect.KClass
 
 // ============================================================================
@@ -142,6 +143,32 @@ fun NavGraphBuilder.authNavGraph(
 // ============================================================================
 
 /**
+ * Splash screen.
+ *
+ * Navigates to the next route once the view model emits a navigation event.
+ */
+fun NavGraphBuilder.splashScreen(
+    navController: NavHostController,
+    onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
+) {
+    composable<Splash> {
+        SplashScreen(
+            navController = navController,
+            onNavigate = {
+                // Navigate to home graph after splash
+                navController.navigate(HomeNavGraph) {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                }
+            },
+        )
+    }
+}
+
+// ============================================================================
+// Profile Navigation Graph
+// ============================================================================
+
+/**
  * Adds the Profile screen to the navigation graph.
  *
  * @param onShowSnackbar Lambda function to show a snackbar message.
@@ -180,6 +207,10 @@ fun AppNavHost(
         startDestination = startDestination,
         modifier = modifier,
     ) {
+        splashScreen(
+            navController = navController,
+            onShowSnackbar = onShowSnackbar,
+        )
         authNavGraph(
             nestedNavGraphs = {
                 signInScreen(
@@ -225,7 +256,8 @@ fun AppNavHost(
     onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val startDestination = if (isUserLoggedIn) HomeNavGraph::class else AuthNavGraph::class
+    // Splash should be the first route
+    val startDestination = Splash::class
     
     AppNavHost(
         navController = navController,

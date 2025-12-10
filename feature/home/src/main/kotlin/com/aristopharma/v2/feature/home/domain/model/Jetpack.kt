@@ -40,3 +40,4 @@ data class Jetpack(
     val formattedDate: String = String(),
 )
 
+

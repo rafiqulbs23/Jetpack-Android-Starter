@@ -27,6 +27,11 @@ android {
 dependencies {
     // ... Core
     implementation(project(":core:android"))
+    implementation(project(":core:room"))
+    implementation(project(":core:network"))
+    
+    // ... Retrofit
+    implementation(libs.retrofit.core)
     
     // ... Features (for repository implementations)
     implementation(project(":feature:auth"))
