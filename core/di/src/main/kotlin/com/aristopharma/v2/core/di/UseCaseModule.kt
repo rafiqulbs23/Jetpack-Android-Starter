@@ -21,12 +21,6 @@ import com.aristopharma.v2.feature.home.domain.usecase.CreateOrUpdateJetpackUseC
 import com.aristopharma.v2.feature.home.domain.usecase.DeleteJetpackUseCase
 import com.aristopharma.v2.feature.home.domain.usecase.GetJetpackUseCase
 import com.aristopharma.v2.feature.home.domain.usecase.GetJetpacksUseCase
-import com.aristopharma.v2.feature.auth.domain.repository.AuthRepository
-import com.aristopharma.v2.feature.auth.domain.usecase.RegisterWithEmailAndPasswordUseCase
-import com.aristopharma.v2.feature.auth.domain.usecase.RegisterWithGoogleUseCase
-import com.aristopharma.v2.feature.auth.domain.usecase.SignInWithEmailAndPasswordUseCase
-import com.aristopharma.v2.feature.auth.domain.usecase.SignInWithGoogleUseCase
-import com.aristopharma.v2.feature.auth.domain.usecase.SignInWithSavedCredentialsUseCase
 import com.aristopharma.v2.feature.profile.domain.repository.ProfileRepository
 import com.aristopharma.v2.feature.profile.domain.usecase.GetProfileUseCase
 import com.aristopharma.v2.feature.profile.domain.usecase.SignOutProfileUseCase
@@ -73,36 +67,6 @@ object UseCaseModule {
     fun provideDeleteJetpackUseCase(
         homeRepository: HomeRepository,
     ): DeleteJetpackUseCase = DeleteJetpackUseCase(homeRepository)
-
-    @Provides
-    @Singleton
-    fun provideSignInWithSavedCredentialsUseCase(
-        authRepository: AuthRepository,
-    ): SignInWithSavedCredentialsUseCase = SignInWithSavedCredentialsUseCase(authRepository)
-
-    @Provides
-    @Singleton
-    fun provideSignInWithEmailAndPasswordUseCase(
-        authRepository: AuthRepository,
-    ): SignInWithEmailAndPasswordUseCase = SignInWithEmailAndPasswordUseCase(authRepository)
-
-    @Provides
-    @Singleton
-    fun provideRegisterWithEmailAndPasswordUseCase(
-        authRepository: AuthRepository,
-    ): RegisterWithEmailAndPasswordUseCase = RegisterWithEmailAndPasswordUseCase(authRepository)
-
-    @Provides
-    @Singleton
-    fun provideSignInWithGoogleUseCase(
-        authRepository: AuthRepository,
-    ): SignInWithGoogleUseCase = SignInWithGoogleUseCase(authRepository)
-
-    @Provides
-    @Singleton
-    fun provideRegisterWithGoogleUseCase(
-        authRepository: AuthRepository,
-    ): RegisterWithGoogleUseCase = RegisterWithGoogleUseCase(authRepository)
 
     @Provides
     @Singleton

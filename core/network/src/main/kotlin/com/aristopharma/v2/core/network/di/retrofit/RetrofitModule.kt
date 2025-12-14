@@ -22,6 +22,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import com.aristopharma.v2.core.network.BuildConfig
 import com.aristopharma.v2.core.network.di.okhttp.OkHttpClientModule
+import com.aristopharma.v2.core.network.utils.BASE_URL
 import okhttp3.OkHttpClient
 import retrofit2.Converter
 import retrofit2.Retrofit
@@ -52,7 +53,7 @@ object RetrofitModule {
         okHttpClient: OkHttpClient,
     ): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BuildConfig.BACKEND_URL)
+            .baseUrl(BASE_URL)
             .addConverterFactory(converterFactory)
             .client(okHttpClient)
             .build()

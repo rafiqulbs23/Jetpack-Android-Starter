@@ -11,3 +11,4 @@ class GetSettingsUseCase @Inject constructor(
     operator fun invoke(): Flow<Settings> = repository.getSettings()
 }
 
+

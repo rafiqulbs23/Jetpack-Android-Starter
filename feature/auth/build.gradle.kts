@@ -19,21 +19,46 @@ plugins {
     alias(libs.plugins.jetpack.dagger.hilt)
     alias(libs.plugins.jetpack.dokka)
     alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
     namespace = "com.aristopharma.v2.feature.auth"
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    buildTypes {
+        debug {
+            buildConfigField("Boolean", "ENABLE_BYPASS_OTP", "true")
+        }
+        release {
+            buildConfigField("Boolean", "ENABLE_BYPASS_OTP", "true")
+        }
+    }
 }
 
 dependencies {
     // ... Modules
     implementation(project(":core:ui"))
+    implementation(project(":core:android"))
     implementation(project(":core:preferences"))
     implementation(project(":core:network"))
+    
+    // ... DataStore
+    implementation(libs.androidx.dataStore.core)
     
     // ... Retrofit
     implementation(libs.retrofit.core)
     
     // ... Firebase
+    implementation(platform(libs.firebase.bom))
+
+    // ... Google Play Services - SMS Retriever API
+    implementation(libs.play.services.auth.api.phone)
+
     implementation(project(":firebase:auth"))
+    implementation(project(":feature:notification"))
+
 }

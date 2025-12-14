@@ -11,3 +11,4 @@ class GetProfileUseCase @Inject constructor(
     operator fun invoke(): Flow<Profile> = repository.getProfile()
 }
 
+

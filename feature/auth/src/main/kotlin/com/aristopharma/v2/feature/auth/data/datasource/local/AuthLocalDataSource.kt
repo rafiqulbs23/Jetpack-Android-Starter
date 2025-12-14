@@ -16,18 +16,29 @@
 
 package com.aristopharma.v2.feature.auth.data.datasource.local
 
+import androidx.datastore.core.DataStore
+import com.aristopharma.v2.core.di.IoDispatcher
 import com.aristopharma.v2.core.preferences.data.UserPreferencesDataSource
 import com.aristopharma.v2.core.preferences.model.PreferencesUserProfile
+import com.aristopharma.v2.feature.auth.data.model.LoginModel
 import com.aristopharma.v2.firebase.auth.model.AuthUser
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
  * Local data source for authentication-related data storage.
  *
  * @param userPreferencesDataSource The user preferences data source.
+ * @param loginModelDataStore The DataStore for storing login model.
+ * @param ioDispatcher The CoroutineDispatcher for performing I/O operations.
  */
 class AuthLocalDataSource @Inject constructor(
     private val userPreferencesDataSource: UserPreferencesDataSource,
+    private val loginModelDataStore: DataStore<LoginModel>,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
     /**
      * Save user profile to local storage.
@@ -36,6 +47,65 @@ class AuthLocalDataSource @Inject constructor(
      */
     suspend fun saveUserProfile(user: AuthUser) {
         userPreferencesDataSource.setUserProfile(user.asPreferencesUserProfile())
+    }
+
+    /**
+     * Save login model to local storage.
+     *
+     * @param loginModel The login model to save.
+     */
+    suspend fun saveLoginModel(loginModel: LoginModel) {
+        withContext(ioDispatcher) {
+            loginModelDataStore.updateData { loginModel }
+        }
+    }
+
+    /**
+     * Get saved login model from local storage.
+     *
+     * @return The saved login model, or null if not found.
+     */
+    suspend fun getLoginModel(): LoginModel? {
+        return withContext(ioDispatcher) {
+            try {
+                loginModelDataStore.data.first()
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    /**
+     * Get login model as a Flow for reactive updates.
+     *
+     * @return A Flow of [LoginModel].
+     */
+    fun getLoginModelFlow(): Flow<LoginModel> {
+        return loginModelDataStore.data
+    }
+
+    /**
+     * Clear saved login model.
+     */
+    suspend fun clearLoginModel() {
+        withContext(ioDispatcher) {
+            loginModelDataStore.updateData { LoginModel() }
+        }
+    }
+
+    /**
+     * Check if user is logged in.
+     *
+     * @return true if user is logged in, false otherwise.
+     */
+    suspend fun isLoggedIn(): Boolean {
+        return withContext(ioDispatcher) {
+            try {
+                loginModelDataStore.data.first().isLoggedIn
+            } catch (e: Exception) {
+                false
+            }
+        }
     }
 
     /**
@@ -54,4 +124,5 @@ class AuthLocalDataSource @Inject constructor(
         profilePictureUriString = profilePictureUri?.toString(),
     )
 }
+
 

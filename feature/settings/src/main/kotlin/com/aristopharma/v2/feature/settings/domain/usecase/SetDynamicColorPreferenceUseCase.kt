@@ -10,3 +10,4 @@ class SetDynamicColorPreferenceUseCase @Inject constructor(
         repository.setDynamicColorPreference(useDynamicColor)
 }
 
+

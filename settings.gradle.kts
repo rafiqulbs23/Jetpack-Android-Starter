@@ -73,6 +73,7 @@ include(":core:ui")
 // ... Feature
 include(":feature:auth")
 include(":feature:home")
+include(":feature:notification")
 include(":feature:profile")
 include(":feature:settings")
 

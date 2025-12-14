@@ -12,3 +12,4 @@ sealed interface SettingsEvent {
     data object SignOut : SettingsEvent
 }
 
+

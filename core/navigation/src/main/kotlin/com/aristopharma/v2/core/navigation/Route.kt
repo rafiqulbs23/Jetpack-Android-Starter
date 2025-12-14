@@ -94,12 +94,6 @@ data object AuthNavGraph
 data object SignIn
 
 /**
- * Sign up route.
- */
-@Serializable
-data object SignUp
-
-/**
  * Navigate to the auth navigation graph.
  *
  * @param navOptions [NavOptions].
@@ -115,15 +109,6 @@ fun NavController.navigateToAuthNavGraph(navOptions: NavOptions? = null) {
  */
 fun NavController.navigateToSignInScreen(navOptions: NavOptions? = null) {
     navigate(SignIn, navOptions)
-}
-
-/**
- * Navigate to the sign up route.
- *
- * @param navOptions [NavOptions].
- */
-fun NavController.navigateToSignUpScreen(navOptions: NavOptions? = null) {
-    navigate(SignUp, navOptions)
 }
 
 // ============================================================================

@@ -30,7 +30,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import com.aristopharma.v2.core.di.IoDispatcher
 import com.aristopharma.v2.feature.home.domain.repository.HomeRepository
-import com.aristopharma.v2.core.sync.SyncProgress
 import com.aristopharma.v2.sync.extensions.syncForegroundInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.flowOn

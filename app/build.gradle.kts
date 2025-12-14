@@ -70,8 +70,10 @@ android {
         debug {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("debug")
+            buildConfigField("Boolean", "ENABLE_BYPASS_OTP", "true")
         }
         release {
+            buildConfigField("Boolean", "ENABLE_BYPASS_OTP", "true")
             isMinifyEnabled = true
             applicationVariants.all {
                 outputs.all {

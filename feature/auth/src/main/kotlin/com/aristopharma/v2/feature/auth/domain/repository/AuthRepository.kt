@@ -16,65 +16,60 @@
 
 package com.aristopharma.v2.feature.auth.domain.repository
 
-import android.app.Activity
+import com.aristopharma.v2.feature.auth.data.model.LoginModel
+import com.aristopharma.v2.feature.auth.data.model.LoginPostModel
+import com.aristopharma.v2.feature.auth.data.model.LoginResponseModel
+import com.aristopharma.v2.feature.auth.data.model.OTPValidationRequest
+import com.aristopharma.v2.feature.auth.data.model.OTPValidationResponse
 
 /**
  * Interface defining authentication-related operations.
  */
 interface AuthRepository {
     /**
-     * Sign in with saved credentials.
+     * Login with employee ID and FCM token to receive OTP.
      *
-     * @param activity The activity instance.
-     * @return A [Result] representing the sign-in operation result. It contains [Unit] if
-     * the sign-in was successful, or an error if there was a problem.
+     * @param model The login request model containing empId and fcmToken.
+     * @return A [Result] representing the login operation result. It contains [LoginResponseModel] if
+     * the login was successful, or an error if there was a problem.
      */
-    suspend fun signInWithSavedCredentials(activity: Activity): Result<Unit>
+    suspend fun login(model: LoginPostModel): Result<LoginResponseModel>
 
     /**
-     * Sign in with an email and password.
+     * Validate OTP code.
      *
-     * @param email The user's email address.
-     * @param password The user's password.
-     * @return A [Result] representing the sign-in operation result. It contains [Unit] if
-     * the sign-in was successful, or an error if there was a problem.
+     * @param model The OTP validation request model containing empId and otp.
+     * @return A [Result] representing the OTP validation result. It contains [OTPValidationResponse] if
+     * the validation was successful, or an error if there was a problem.
      */
-    suspend fun signInWithEmailAndPassword(email: String, password: String): Result<Unit>
+    suspend fun validateOTP(model: OTPValidationRequest): Result<OTPValidationResponse>
 
     /**
-     * Register a new user with an email and password.
+     * Save login credentials locally.
      *
-     * @param name The user's name.
-     * @param email The user's email address.
-     * @param password The user's password.
-     * @param activity The activity instance.
-     * @return A [Result] representing the registration operation result. It contains [Unit] if
-     * the registration was successful, or an error if there was a problem.
+     * @param loginModel The login model to save.
      */
-    suspend fun registerWithEmailAndPassword(
-        name: String,
-        email: String,
-        password: String,
-        activity: Activity,
-    ): Result<Unit>
+    suspend fun saveLoginModel(loginModel: LoginModel)
 
     /**
-     * Sign in with Google.
+     * Get saved login credentials.
      *
-     * @param activity The activity instance.
-     * @return A [Result] representing the sign-in operation result. It contains [Unit] if
-     * the sign-in was successful, or an error if there was a problem.
+     * @return The saved login model, or null if not found.
      */
-    suspend fun signInWithGoogle(activity: Activity): Result<Unit>
+    suspend fun getLoginModel(): LoginModel?
 
     /**
-     * Register a new user with Google.
-     *
-     * @param activity The activity used to launch the Google sign-in intent.
-     * @return A [Result] representing the registration operation result. It contains [Unit] if
-     * the registration was successful, or an error if there was a problem.
+     * Clear saved login credentials.
      */
-    suspend fun registerWithGoogle(activity: Activity): Result<Unit>
+    suspend fun clearLoginModel()
+
+    /**
+     * Check if user is logged in.
+     *
+     * @return true if user is logged in, false otherwise.
+     */
+    suspend fun isLoggedIn(): Boolean
 }
+
 
 

@@ -11,3 +11,4 @@ class SetDarkThemeConfigUseCase @Inject constructor(
         repository.setDarkThemeConfig(config)
 }
 
+

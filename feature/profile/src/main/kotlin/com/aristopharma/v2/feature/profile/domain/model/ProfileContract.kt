@@ -12,3 +12,4 @@ sealed interface ProfileEvent {
     data object SignOut : ProfileEvent
 }
 
+

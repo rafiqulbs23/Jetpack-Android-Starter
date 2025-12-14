@@ -22,11 +22,11 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
 import androidx.navigation.navigation
 import com.aristopharma.v2.core.ui.utils.SnackbarAction
 import com.aristopharma.v2.feature.splash.presentation.screens.SplashScreen
 import com.aristopharma.v2.feature.auth.presentation.screen.signin.SignInScreen
-import com.aristopharma.v2.feature.auth.presentation.screen.signup.SignUpScreen
 import com.aristopharma.v2.feature.home.presentation.screen.home.HomeScreen
 import com.aristopharma.v2.feature.home.presentation.screen.item.ItemScreen
 import com.aristopharma.v2.feature.profile.presentation.screen.ProfileScreen
@@ -92,34 +92,22 @@ fun NavGraphBuilder.homeNavGraph(
 /**
  * Sign in screen.
  *
- * @param onSignUpClick Callback when sign up is clicked.
+ * @param navController The navigation controller for managing navigation.
  * @param onShowSnackbar Callback to show a snackbar.
  */
 fun NavGraphBuilder.signInScreen(
-    onSignUpClick: () -> Unit,
+    navController: NavHostController,
     onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
 ) {
     composable<SignIn> {
         SignInScreen(
-            onSignUpClick = onSignUpClick,
-            onShowSnackbar = onShowSnackbar,
-        )
-    }
-}
-
-/**
- * Sign up screen.
- *
- * @param onSignInClick Callback when sign in is clicked.
- * @param onShowSnackbar Callback to show a snackbar.
- */
-fun NavGraphBuilder.signUpScreen(
-    onSignInClick: () -> Unit,
-    onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
-) {
-    composable<SignUp> {
-        SignUpScreen(
-            onSignInClick = onSignInClick,
+            onNavigateToDashboard = {
+                val navOptions = navOptions {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    launchSingleTop = true
+                }
+                navController.navigateToHomeNavGraph(navOptions)
+            },
             onShowSnackbar = onShowSnackbar,
         )
     }
@@ -153,11 +141,10 @@ fun NavGraphBuilder.splashScreen(
 ) {
     composable<Splash> {
         SplashScreen(
-            navController = navController,
             onNavigate = {
-                // Navigate to home graph after splash
-                navController.navigate(HomeNavGraph) {
+                navController.navigate(SignIn) {
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    launchSingleTop = true
                 }
             },
         )
@@ -214,11 +201,7 @@ fun AppNavHost(
         authNavGraph(
             nestedNavGraphs = {
                 signInScreen(
-                    onSignUpClick = { navController.navigateToSignUpScreen() },
-                    onShowSnackbar = onShowSnackbar,
-                )
-                signUpScreen(
-                    onSignInClick = { navController.navigateToSignInScreen() },
+                    navController = navController,
                     onShowSnackbar = onShowSnackbar,
                 )
             },

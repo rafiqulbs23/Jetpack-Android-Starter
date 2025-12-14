@@ -16,10 +16,10 @@
 
 package com.aristopharma.v2.core.di
 
-import com.aristopharma.v2.feature.auth.data.repository.AuthRepositoryImpl
-import com.aristopharma.v2.feature.auth.domain.repository.AuthRepository
 import com.aristopharma.v2.feature.home.data.repository.HomeRepositoryImpl
 import com.aristopharma.v2.feature.home.domain.repository.HomeRepository
+import com.aristopharma.v2.feature.notification.data.repository.NotificationRepositoryImpl
+import com.aristopharma.v2.feature.notification.domain.repository.NotificationRepository
 import com.aristopharma.v2.feature.profile.data.repository.ProfileRepositoryImpl
 import com.aristopharma.v2.feature.profile.domain.repository.ProfileRepository
 import com.aristopharma.v2.feature.settings.data.repository.SettingsRepositoryImpl
@@ -36,18 +36,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
-    /**
-     * Binds the implementation of [AuthRepository] to [AuthRepositoryImpl].
-     *
-     * @param authRepositoryImpl The implementation of [AuthRepository].
-     * @return The bound [AuthRepository] instance.
-     */
-    @Binds
-    @Singleton
-    internal abstract fun bindAuthRepository(
-        authRepositoryImpl: AuthRepositoryImpl,
-    ): AuthRepository
-
     /**
      * Binds the implementation of [HomeRepository] to [HomeRepositoryImpl].
      *
@@ -83,4 +71,16 @@ abstract class RepositoryModule {
     internal abstract fun bindSettingsRepository(
         settingsRepositoryImpl: SettingsRepositoryImpl,
     ): SettingsRepository
+
+    /**
+     * Binds the implementation of [NotificationRepository] to [NotificationRepositoryImpl].
+     *
+     * @param notificationRepositoryImpl The implementation of [NotificationRepository].
+     * @return The bound [NotificationRepository] instance.
+     */
+    @Binds
+    @Singleton
+    internal abstract fun bindNotificationRepository(
+        notificationRepositoryImpl: NotificationRepositoryImpl,
+    ): NotificationRepository
 }

@@ -38,6 +38,7 @@ kotlin {
     }
 }
 
+
 dependencies {
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.android.gradlePlugin)

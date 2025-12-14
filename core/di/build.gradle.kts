@@ -36,6 +36,7 @@ dependencies {
     // ... Features (for repository implementations)
     implementation(project(":feature:auth"))
     implementation(project(":feature:home"))
+    implementation(project(":feature:notification"))
     implementation(project(":feature:profile"))
     implementation(project(":feature:settings"))
 }

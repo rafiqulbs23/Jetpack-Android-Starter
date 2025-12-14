@@ -1,36 +1,50 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-     Copyright 2025 Md. Rafiqul Islam
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          http://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
--->
-
 <resources>
-    <string name="password">Password</string>
-    <string name="show_password">Show password</string>
-    <string name="hide_password">Hide password</string>
-    <string name="sign_in">Sign In</string>
-    <string name="do_not_have_an_account">"Do not have an account? "</string>
-    <string name="sign_up">Sign Up</string>
-    <string name="email">Email</string>
-    <string name="name">Full Name</string>
-    <string name="sign_up_with_google">Sign Up with Google</string>
-    <string name="already_have_an_account">Already have an account?</string>
-    <string name="login">Login</string>
-    <string name="or">or</string>
-    <string name="password_spec">Password should contain: uppercase letters (A-Z), lowercase letters (a-z), numbers (0-9) and special characters (#$@?)</string>
-    <string name="agree_to_terms">Before continuing, you agree to our</string>
-    <string name="privacy_policy">Privacy Policy</string>
-    <string name="feedback">Feedback</string>
-    <string name="terms_of_service">Terms of Service</string>
+    <string name="app_name">Aristopharma</string>
+    <string name="no_data">Empty</string>
+    <string name="no_internet">No Internet</string>
+    <string name="network_error">Network Error</string>
+    <string name="very_long_lorem_ipsum">ABC</string>
+    <string name="page_title">Photo Gallery</string>
+    <string name="corrupted">Data integrity cannot be verified</string>
+    <string name="order_confirmation">Yes</string>
+    <string name="ok">Ok</string>
+    <string name="check_in_summary">Check In Summary</string>
+    <string name="check_out">Check Out</string>
+    <string name="day_running">Day Running</string>
+    <string name="end_day">End Day</string>
+    <string name="start_day">Start Day</string>
+    <string name="check_in">Check In</string>
+    <string name="live_report">Live Report</string>
+    <string name="leave">Leave</string>
+    <string name="leave_approval">Leave Approval</string>
+
+    <string name="register">REGISTER</string>
+    <string name="login_email_hint">Email</string>
+    <string name="login_password_hint">Password</string>
+    <string name="signup_login_hint">Already have an account? Sign In</string>
+    <string name="login_signup_hint">Don\'t have an account? Sign Up</string>
+    <string name="login_name_hint">Name</string>
+    <string name="login_mobile_number_hint">Mobile Number</string>
+    <string name="aristopharma_msfa">Aristopharma MSFA</string>
+
+    <!-- to toggle the open close button of the navigation drawer -->
+    <string name="nav_open">Open</string>
+    <string name="nav_close">Close</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="fcm_error">FCM TOKEN generation failed</string>
+    <string name="unknown_session">UNKNOWN ATTENDANCE SESSION</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="attendance">Attendance</string>
+    <string name="search_hint">Search</string>
+    <string name="user_empty">User cannot be empty</string>
+    <string name="waiting_for_sms">Waiting for SMS ...</string>
+    <string name="retry"><u>Retry</u></string>
+    <string name="otp">otp</string>
+    <string name="activity">MIO Activity</string>
+    <string name="report">Report</string>
+    <string name="notification">Notifications</string>
+    <string name="order_approval_confirmation">Pending order is processed. Your manager will be notified soon</string>
+    <string name="forgot_password"><u>Forgot Password?</u></string>
+    <string name="sync_now"><u>Sync Now</u></string>
 </resources>

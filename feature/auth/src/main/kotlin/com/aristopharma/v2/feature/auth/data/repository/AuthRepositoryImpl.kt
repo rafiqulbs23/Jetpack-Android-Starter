@@ -16,10 +16,15 @@
 
 package com.aristopharma.v2.feature.auth.data.repository
 
-import android.app.Activity
+import com.aristopharma.v2.core.ui.utils.BaseResponse
 import com.aristopharma.v2.core.utils.suspendRunCatching
 import com.aristopharma.v2.feature.auth.data.datasource.local.AuthLocalDataSource
 import com.aristopharma.v2.feature.auth.data.datasource.remote.AuthRemoteDataSource
+import com.aristopharma.v2.feature.auth.data.model.LoginModel
+import com.aristopharma.v2.feature.auth.data.model.LoginPostModel
+import com.aristopharma.v2.feature.auth.data.model.LoginResponseModel
+import com.aristopharma.v2.feature.auth.data.model.OTPValidationRequest
+import com.aristopharma.v2.feature.auth.data.model.OTPValidationResponse
 import com.aristopharma.v2.feature.auth.domain.repository.AuthRepository
 import javax.inject.Inject
 
@@ -34,85 +39,114 @@ class AuthRepositoryImpl @Inject constructor(
     private val localDataSource: AuthLocalDataSource,
 ) : AuthRepository {
 
-    /**
-     * Sign in with saved credentials.
-     *
-     * @param activity The activity instance.
-     * @return A [Result] representing the sign-in operation result. It contains [Unit] if
-     * the sign-in was successful, or an error if there was a problem.
-     */
-    override suspend fun signInWithSavedCredentials(activity: Activity): Result<Unit> {
+    override suspend fun login(model: LoginPostModel): Result<LoginResponseModel> {
         return suspendRunCatching {
-            val user = remoteDataSource.signInWithSavedCredentials(activity)
-            localDataSource.saveUserProfile(user)
+            val response = remoteDataSource.login(model)
+                ?: throw IllegalStateException("No response received from server")
+            
+            validateAndExtractResponse(
+                response = response,
+                operationName = "Login",
+            )
+        }
+    }
+
+    override suspend fun validateOTP(model: OTPValidationRequest): Result<OTPValidationResponse> {
+        return suspendRunCatching {
+            val response = remoteDataSource.validateOTP(model)
+                ?: throw IllegalStateException("No response received from server")
+            
+            validateAndExtractResponse(
+                response = response,
+                operationName = "OTP validation",
+            )
         }
     }
 
     /**
-     * Sign in with an email and password.
+     * Validates the response and extracts the data if successful.
      *
-     * @param email The user's email address.
-     * @param password The user's password.
-     * @return A [Result] representing the sign-in operation result. It contains [Unit] if
-     * the sign-in was successful, or an error if there was a problem.
+     * @param response The response to validate.
+     * @param operationName The name of the operation for error messages.
+     * @return The data from the response if successful.
+     * @throws IllegalStateException if the response indicates failure.
      */
-    override suspend fun signInWithEmailAndPassword(
-        email: String,
-        password: String,
-    ): Result<Unit> {
-        return suspendRunCatching {
-            val user = remoteDataSource.signInWithEmailAndPassword(email, password)
-            localDataSource.saveUserProfile(user)
+    private fun <T> validateAndExtractResponse(
+        response: BaseResponse<T>,
+        operationName: String,
+    ): T {
+        // Check for success case first
+        if (response.statusCode in 200..299 && response.data != null) {
+            return response.data as T
         }
+        
+        // Check for HTTP error status codes
+        if (response.statusCode != null && response.statusCode !in 200..299) {
+            val errorMessage = getErrorMessage(
+                response,
+                operationName,
+                "Status code ${response.statusCode}",
+            )
+            throw IllegalStateException(errorMessage)
+        }
+        
+        // Check for missing data
+        if (response.data == null) {
+            val errorMessage = getErrorMessage(response, operationName, "No data received")
+            throw IllegalStateException(errorMessage)
+        }
+        
+        // Unknown error case
+        throw IllegalStateException("$operationName failed: Unknown error")
     }
 
     /**
-     * Register a new user with an email and password.
+     * Extracts error message from response with fallback options.
      *
-     * @param name The user's name.
-     * @param email The user's email address.
-     * @param password The user's password.
-     * @param activity The activity instance.
-     * @return A [Result] representing the registration operation result. It contains [Unit] if
-     * the registration was successful, or an error if there was a problem.
+     * @param response The response containing error information.
+     * @param operationName The name of the operation.
+     * @param fallbackMessage The fallback message if no error details are available.
+     * @return The error message.
      */
-    override suspend fun registerWithEmailAndPassword(
-        name: String,
-        email: String,
-        password: String,
-        activity: Activity,
-    ): Result<Unit> {
-        return suspendRunCatching {
-            val user = remoteDataSource.registerWithEmailAndPassword(name, email, password, activity)
-            localDataSource.saveUserProfile(user)
+    private fun <T> getErrorMessage(
+        response: BaseResponse<T>,
+        operationName: String,
+        fallbackMessage: String,
+    ): String {
+        return response.message
+            ?: response.errors.takeIf { it.isNotEmpty() }?.joinToString(", ")
+            ?: "$operationName failed: $fallbackMessage"
+    }
+
+    override suspend fun saveLoginModel(loginModel: LoginModel) {
+        try {
+            localDataSource.saveLoginModel(loginModel)
+        } catch (e: Exception) {
+            throw IllegalStateException("Failed to save login model", e)
         }
     }
 
-    /**
-     * Sign in with Google.
-     *
-     * @param activity The current activity.
-     * @return A [Result] representing the sign-in operation result. It contains [Unit] if
-     * the sign-in was successful, or an error if there was a problem.
-     */
-    override suspend fun signInWithGoogle(activity: Activity): Result<Unit> {
-        return suspendRunCatching {
-            val user = remoteDataSource.signInWithGoogle(activity)
-            localDataSource.saveUserProfile(user)
+    override suspend fun getLoginModel(): LoginModel? {
+        return try {
+            localDataSource.getLoginModel()
+        } catch (e: Exception) {
+            null
         }
     }
 
-    /**
-     * Register a new user with Google.
-     *
-     * @param activity The current activity.
-     * @return A [Result] representing the registration operation result. It contains [Unit] if
-     * the registration was successful, or an error if there was a problem.
-     */
-    override suspend fun registerWithGoogle(activity: Activity): Result<Unit> {
-        return suspendRunCatching {
-            val user = remoteDataSource.registerWithGoogle(activity)
-            localDataSource.saveUserProfile(user)
+    override suspend fun clearLoginModel() {
+        try {
+            localDataSource.clearLoginModel()
+        } catch (e: Exception) {
+            throw IllegalStateException("Failed to clear login model", e)
+        }
+    }
+
+    override suspend fun isLoggedIn(): Boolean {
+        return try {
+            localDataSource.isLoggedIn()
+        } catch (e: Exception) {
+            false
         }
     }
 }

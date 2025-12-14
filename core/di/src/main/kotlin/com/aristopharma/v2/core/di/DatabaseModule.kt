@@ -34,3 +34,4 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 object DatabaseModule{}
 
+
