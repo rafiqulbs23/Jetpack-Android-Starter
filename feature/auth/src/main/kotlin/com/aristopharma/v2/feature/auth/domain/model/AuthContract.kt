@@ -17,29 +17,30 @@ data class SignInState(
     val isSignUpSuccessful: Boolean = false,
     val isWaitingForSMS: OneTimeEvent<Boolean> = OneTimeEvent(false),
     val isBypassOTP: Boolean = false,
+    val isVisibleByPassOTP : Boolean = false,
+    val showForgotPassword : Boolean = true,
 )
 
 @Immutable
 sealed interface SignInEvent {
-    data object ValidateAndSignUp : SignInEvent
+    data class UpdateEmpId(val empId: String) : SignInEvent
+    data class UpdatePassword(val password: String) : SignInEvent
+    data class UpdateConfirmPassword(val confirmPassword: String) : SignInEvent
+    data class UpdateOTP(val otp: String) : SignInEvent
+    data class UpdateBypassOTP(val enabled: Boolean) : SignInEvent
+
+    data class ValidateAndSignUp(
+        val empId: String,
+        val password: String,
+        val confirmPassword: String,
+    ) : SignInEvent
     data class ValidateOTP(val otp: String) : SignInEvent
-    data class DeviceLogin(val openDashboard: () -> Unit) : SignInEvent
+    data class DeviceLogin(val empId: String, val password: String, val openDashboard: () -> Unit) : SignInEvent
     data class LoginBypass(val empId: String, val password: String) : SignInEvent
     data object DeleteAllData : SignInEvent
     data object FetchModel : SignInEvent
-}
-
-@Immutable
-data class SignUpState(
-    val name: TextFiledData = TextFiledData(String()),
-    val email: TextFiledData = TextFiledData(String()),
-    val password: TextFiledData = TextFiledData(String()),
-)
-
-@Immutable
-sealed interface SignUpEvent {
-    data class RegisterWithGoogle(val activity: Activity) : SignUpEvent
-    data class RegisterWithEmailPassword(val activity: Activity) : SignUpEvent
+    data object ShowSignUpUi : SignInEvent
+    data object ResetError : SignInEvent
 }
 
 

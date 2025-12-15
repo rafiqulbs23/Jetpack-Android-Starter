@@ -18,6 +18,7 @@ package com.aristopharma.v2.core.ui.utils
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -43,25 +44,30 @@ import kotlinx.coroutines.launch
 fun <T : Any> StatefulComposable(
     state: UiState<T>,
     onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
+    onClearError: () -> Unit= {},
     content: @Composable (T) -> Unit,
 ) {
-    content(state.data)
-
-    if (state.loading) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            JetpackOverlayLoadingWheel(
-                modifier = Modifier
-                    .align(Alignment.Center),
-                contentDesc = "",
-            )
+    Surface{
+        content(state.data)
+        if (state.loading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                JetpackOverlayLoadingWheel(
+                    modifier = Modifier
+                        .align(Alignment.Center),
+                    contentDesc = "",
+                )
+            }
         }
     }
 
+
+
     state.error.getContentIfNotHandled()?.let { error ->
         LaunchedEffect(onShowSnackbar) {
-            onShowSnackbar(error.message.toString(), SnackbarAction.REPORT, error)
+            onShowSnackbar(error.message.toString(), SnackbarAction.NONE, error)
+            onClearError()
         }
     }
 }

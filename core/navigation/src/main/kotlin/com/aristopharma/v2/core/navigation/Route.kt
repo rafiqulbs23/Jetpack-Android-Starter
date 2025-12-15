@@ -131,6 +131,25 @@ fun NavController.navigateToProfileScreen(navOptions: NavOptions?) {
 }
 
 // ============================================================================
+// Dashboard Routes
+// ============================================================================
+
+/**
+ * Dashboard route.
+ */
+@Serializable
+data object Dashboard
+
+/**
+ * Navigate to the Dashboard screen.
+ *
+ * @param navOptions Optional navigation options to configure the navigation behavior.
+ */
+fun NavController.navigateToDashboard(navOptions: NavOptions? = null) {
+    navigate(Dashboard, navOptions)
+}
+
+// ============================================================================
 // Top Level Destinations
 // ============================================================================
 

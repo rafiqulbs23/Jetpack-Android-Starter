@@ -52,10 +52,20 @@ object RetrofitModule {
         converterFactory: Converter.Factory,
         okHttpClient: OkHttpClient,
     ): Retrofit {
+
+        val client = okHttpClient.newBuilder()
+            .addInterceptor { chain ->
+                val newRequest = chain.request().newBuilder()
+                    .header("Accept", "application/json")
+                    .build()
+                chain.proceed(newRequest)
+            }
+            .build()
+
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(converterFactory)
-            .client(okHttpClient)
+            .client(client)
             .build()
     }
 }

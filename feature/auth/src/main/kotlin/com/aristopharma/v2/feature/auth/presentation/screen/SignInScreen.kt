@@ -36,6 +36,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -45,9 +46,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -62,6 +64,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -72,8 +75,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import com.aristopharma.v2.feature.auth.R
 import com.aristopharma.v2.core.ui.utils.SnackbarAction
 import com.aristopharma.v2.core.ui.utils.StatefulComposable
+import com.aristopharma.v2.feature.auth.domain.model.SignInEvent
 import com.aristopharma.v2.feature.auth.presentation.component.OtpWaitingDialog
 import com.aristopharma.v2.feature.auth.presentation.utils.OtpReceivedListener
 import com.aristopharma.v2.feature.auth.presentation.utils.SmsRetrieverHelper
@@ -91,6 +98,7 @@ fun SignInScreen(
     signInViewModel: SignInViewModel = hiltViewModel(),
 ) {
     val signInState by signInViewModel.signInUiState.collectAsStateWithLifecycle()
+    val event = signInViewModel::onEvent
     val context = LocalContext.current
 
     // SMS Retriever setup
@@ -98,7 +106,7 @@ fun SignInScreen(
     val otpListener = remember {
         object : OtpReceivedListener {
             override fun onOtpReceived(otp: String) {
-                signInViewModel.validateOTP(otp)
+                signInViewModel.onEvent(SignInEvent.ValidateOTP(otp))
             }
 
             override fun onOtpTimeout() {
@@ -151,36 +159,12 @@ fun SignInScreen(
     StatefulComposable(
         state = signInState,
         onShowSnackbar = onShowSnackbar,
+        onClearError = { signInViewModel.onEvent(SignInEvent.ResetError) },
     ) {
         SignInScreenContent(
             state = signInState.data,
-            onEmpIdChange = signInViewModel::updateEmpId,
-            onPasswordChange = signInViewModel::updatePassword,
-            onConfirmPasswordChange = signInViewModel::updateConfirmPassword,
-            onOtpChange = signInViewModel::updateOTP,
-            onLoginClick = { user, password ->
-                if (signInState.data.isBypassOTP) {
-                    signInViewModel.loginBypass(user, password)
-                } else {
-                    signInViewModel.deviceLogin(user, password, onNavigateToDashboard)
-                }
-            },
-            onSignUpClick = {
-                signInViewModel.validateAndSignUp(
-                    signInState.data.empId.value,
-                    signInState.data.password.value,
-                    signInState.data.confirmPassword.value,
-                )
-            },
-            onVerifyClick = {
-                signInViewModel.validateOTP(signInState.data.otp.value)
-            },
-            onForgotPasswordClick = {
-                signInViewModel.showSignUpUi()
-            },
-            onBypassToggle = { enabled ->
-                signInViewModel.updateBypassOTP(enabled)
-            },
+            onEvent = event,
+            onNavigateToDashboard = onNavigateToDashboard,
         )
     }
 
@@ -190,10 +174,12 @@ fun SignInScreen(
             onDismiss = { showOtpDialog = false },
             onRetry = {
                 showOtpDialog = false
-                signInViewModel.validateAndSignUp(
-                    signInState.data.empId.value,
-                    signInState.data.password.value,
-                    signInState.data.confirmPassword.value,
+                signInViewModel.onEvent(
+                    SignInEvent.ValidateAndSignUp(
+                        signInState.data.empId.value,
+                        signInState.data.password.value,
+                        signInState.data.confirmPassword.value,
+                    ),
                 )
             },
         )
@@ -203,15 +189,8 @@ fun SignInScreen(
 @Composable
 private fun SignInScreenContent(
     state: com.aristopharma.v2.feature.auth.domain.model.SignInState,
-    onEmpIdChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onConfirmPasswordChange: (String) -> Unit,
-    onOtpChange: (String) -> Unit,
-    onLoginClick: (String, String) -> Unit,
-    onSignUpClick: () -> Unit,
-    onVerifyClick: () -> Unit,
-    onForgotPasswordClick: () -> Unit,
-    onBypassToggle: (Boolean) -> Unit,
+    onEvent: (SignInEvent) -> Unit,
+    onNavigateToDashboard: () -> Unit,
 ) {
     var showPassword by rememberSaveable { mutableStateOf(false) }
     var showConfirmPassword by rememberSaveable { mutableStateOf(false) }
@@ -239,23 +218,19 @@ private fun SignInScreenContent(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         val guidelineOffset = maxHeight * 0.35f
 
         // Bypass OTP Switch (invisible by default, visible in debug builds)
         AnimatedVisibility(
-            visible = state.isBypassOTP,
+            visible = state.isVisibleByPassOTP,
             modifier = Modifier.align(Alignment.TopEnd),
         ) {
             Switch(
                 checked = state.isBypassOTP,
-                onCheckedChange = onBypassToggle,
+                    onCheckedChange = { enabled -> onEvent(SignInEvent.UpdateBypassOTP(enabled)) },
                 modifier = Modifier.padding(16.dp),
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = Color.Black,
-                ),
             )
         }
 
@@ -263,16 +238,22 @@ private fun SignInScreenContent(
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = guidelineOffset * 0.3f)
+                .padding(top = guidelineOffset * 0.6f)
                 .alpha(logoAlpha),
         ) {
-            // Logo image would go here
-            // For now, using a placeholder
-            Text(
-                text = "Aristopharma",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black,
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_aristo_logo),
+                    contentDescription = "App logo",
+                    modifier = Modifier.size(64.dp),
+                )
+                Spacer(modifier = Modifier.height(30.dp))
+                Text(
+                    text = "Aristopharma MSFA",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
 
         // Login form
@@ -287,8 +268,7 @@ private fun SignInScreenContent(
             // Header
             Text(
                 text = if (state.isVerifyBtnVisible) "Sign Up" else "Login",
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Thin),
-                fontSize = 24.sp,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -296,7 +276,7 @@ private fun SignInScreenContent(
             // Employee ID field
             OutlinedTextField(
                 value = state.empId.value,
-                onValueChange = onEmpIdChange,
+                onValueChange = { onEvent(SignInEvent.UpdateEmpId(it)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
@@ -312,10 +292,8 @@ private fun SignInScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                ),
+                shape = MaterialTheme.shapes.medium,
+                colors = appStaticOutlinedTextFieldColors(),
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -323,7 +301,7 @@ private fun SignInScreenContent(
             // Password field
             OutlinedTextField(
                 value = state.password.value,
-                onValueChange = onPasswordChange,
+                onValueChange = { onEvent(SignInEvent.UpdatePassword(it)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Lock,
@@ -348,10 +326,8 @@ private fun SignInScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                ),
+                shape = MaterialTheme.shapes.medium,
+                colors = appStaticOutlinedTextFieldColors(),
             )
 
             // Confirm Password (visible only during sign up)
@@ -359,8 +335,10 @@ private fun SignInScreenContent(
                 Column {
                     Spacer(modifier = Modifier.height(12.dp))
                     OutlinedTextField(
+                        shape = MaterialTheme.shapes.medium,
+                        colors = appStaticOutlinedTextFieldColors(),
                         value = state.confirmPassword.value,
-                        onValueChange = onConfirmPasswordChange,
+                        onValueChange = { onEvent(SignInEvent.UpdateConfirmPassword(it)) },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Lock,
@@ -385,34 +363,27 @@ private fun SignInScreenContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                        ),
                     )
                 }
             }
 
-            // OTP field (visible only during OTP verification)
+           /* // OTP field (visible only during OTP verification)
             AnimatedVisibility(visible = state.isVerifyBtnVisible && !state.isLoginBtnVisible) {
                 Column {
                     Spacer(modifier = Modifier.height(12.dp))
                     OutlinedTextField(
                         value = state.otp.value,
-                        onValueChange = onOtpChange,
+                        onValueChange = { onEvent(SignInEvent.UpdateOTP(it)) },
                         label = { Text("OTP") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                        ),
+                        colors = TextFieldDefaults.colors(),
                     )
                 }
-            }
+            }*/
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -420,68 +391,68 @@ private fun SignInScreenContent(
             AnimatedVisibility(visible = state.isLoginBtnVisible) {
                 Button(
                     onClick = {
-                        onLoginClick(state.empId.value, state.password.value)
+                        if (state.isBypassOTP) {
+                            onEvent(SignInEvent.LoginBypass(state.empId.value, state.password.value))
+                        } else {
+                            onEvent(SignInEvent.DeviceLogin(state.empId.value, state.password.value, onNavigateToDashboard))
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
                         .padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(32.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,
-                        contentColor = Color.White,
-                    ),
                 ) {
                     Text(text = "Login", style = MaterialTheme.typography.labelLarge)
                 }
             }
-
+            Spacer(modifier = Modifier.height(10.dp))
             // Sign Up button
             AnimatedVisibility(visible = state.isSignUpBtnVisible) {
                 OutlinedButton(
-                    onClick = onSignUpClick,
+                    onClick = {
+                        /*onEvent(
+                            SignInEvent.ValidateAndSignUp(
+                                state.empId.value,
+                                state.password.value,
+                                state.confirmPassword.value,
+                            ),
+                        )*/
+                        onEvent(SignInEvent.ShowSignUpUi)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 16.dp,),
                     shape = RoundedCornerShape(32.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.Black,
-                    ),
                 ) {
                     Text(text = "Sign Up", style = MaterialTheme.typography.labelLarge)
                 }
             }
-
             // Verify button
             AnimatedVisibility(visible = state.isVerifyBtnVisible) {
-                Button(
-                    onClick = onVerifyClick,
+                OutlinedButton(
+                    onClick = { onEvent(SignInEvent.ValidateOTP(state.otp.value)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
                         .padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(32.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,
-                        contentColor = Color.White,
-                    ),
                 ) {
                     Text(text = "Verify", style = MaterialTheme.typography.labelLarge)
                 }
             }
 
             // Forgot password
-            if (state.isLoginBtnVisible) {
-                Spacer(modifier = Modifier.height(8.dp))
+            if (state.showForgotPassword) {
+                Spacer(modifier = Modifier.height(15.dp))
                 Text(
                     text = "Forgot Password?",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(end = 16.dp)
-                        .clickable { onForgotPasswordClick() },
+                        .clickable { onEvent(SignInEvent.ShowSignUpUi) },
                     textAlign = TextAlign.End,
                     textDecoration = TextDecoration.None,
                     fontSize = 12.sp,
@@ -500,4 +471,17 @@ private fun SignInScreenContent(
                 .clickable { /* Show debug info */ },
         )
     }
+}
+@Composable
+fun appStaticOutlinedTextFieldColors(): TextFieldColors {
+    return OutlinedTextFieldDefaults.colors(
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+
+        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+
+        focusedBorderColor = MaterialTheme.colorScheme.surfaceContainer,
+        unfocusedBorderColor = MaterialTheme.colorScheme.surfaceContainer
+    )
 }

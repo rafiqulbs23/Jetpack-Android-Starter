@@ -24,6 +24,7 @@ import com.aristopharma.v2.core.utils.OneTimeEvent
 import com.aristopharma.v2.feature.auth.data.model.LoginModel
 import com.aristopharma.v2.feature.auth.data.model.LoginPostModel
 import com.aristopharma.v2.feature.auth.data.model.OTPValidationRequest
+import com.aristopharma.v2.feature.auth.domain.model.SignInEvent
 import com.aristopharma.v2.feature.auth.domain.model.SignInState
 import com.aristopharma.v2.feature.auth.BuildConfig
 import com.aristopharma.v2.feature.auth.domain.repository.AuthRepository
@@ -48,16 +49,49 @@ class SignInViewModel @Inject constructor(
     private val fcmTokenManager: FcmTokenManager,
 ) : ViewModel() {
 
+
     private val _signInUiState = MutableStateFlow(
         UiState(
             SignInState(
                 isBypassOTP = BuildConfig.ENABLE_BYPASS_OTP,
+                isVisibleByPassOTP = BuildConfig.ENABLE_BYPASS_OTP
             ),
         ),
     )
     val signInUiState = _signInUiState.asStateFlow()
 
     private var loginModel: LoginModel = LoginModel()
+
+    /**
+     * Handles UI events to mutate state or trigger side effects.
+     */
+    fun onEvent(event: SignInEvent) {
+        when (event) {
+            is SignInEvent.FetchModel -> fetchModel()
+            is SignInEvent.UpdateEmpId -> updateEmpId(event.empId)
+            is SignInEvent.UpdatePassword -> updatePassword(event.password)
+            is SignInEvent.UpdateConfirmPassword -> updateConfirmPassword(event.confirmPassword)
+            is SignInEvent.UpdateOTP -> updateOTP(event.otp)
+            is SignInEvent.UpdateBypassOTP -> updateBypassOTP(event.enabled)
+            is SignInEvent.ValidateAndSignUp -> validateAndSignUp(
+                event.empId,
+                event.password,
+                event.confirmPassword,
+            )
+            is SignInEvent.ValidateOTP -> validateOTP(event.otp)
+            is SignInEvent.DeviceLogin -> deviceLogin(event.empId, event.password, event.openDashboard)
+            is SignInEvent.LoginBypass -> loginBypass(event.empId, event.password)
+            is SignInEvent.DeleteAllData -> deleteAllData()
+            is SignInEvent.ShowSignUpUi -> showSignUpUi()
+            is SignInEvent.ResetError -> {
+                _signInUiState.update {
+                    it.copy(
+                        error = OneTimeEvent(null),
+                    )
+                }
+            }
+        }
+    }
 
     /**
      * Fetches saved login model and initializes UI state.
@@ -224,7 +258,7 @@ class SignInViewModel @Inject constructor(
     /**
      * Validates OTP code.
      */
-    fun validateOTP(otp: String) {
+    private fun validateOTP(otp: String) {
         viewModelScope.launch {
             _signInUiState.update { it.copy(loading = true) }
 
@@ -282,7 +316,7 @@ class SignInViewModel @Inject constructor(
     /**
      * Login bypass for testing purposes.
      */
-    fun loginBypass(empId: String, password: String) {
+    private fun loginBypass(empId: String, password: String) {
         if (empId.isEmpty() || password.isEmpty()) {
             _signInUiState.update {
                 it.copy(
@@ -335,7 +369,7 @@ class SignInViewModel @Inject constructor(
                     _signInUiState.update {
                         it.copy(
                             loading = false,
-                            error = OneTimeEvent(error),
+                            error = OneTimeEvent(IllegalArgumentException(error.message)),
                         )
                     }
                 },
@@ -379,7 +413,7 @@ class SignInViewModel @Inject constructor(
     /**
      * Shows sign up UI (hides login button, shows verify button).
      */
-    fun showSignUpUi() {
+    private fun showSignUpUi() {
         _signInUiState.updateState {
             copy(
                 isLoginBtnVisible = false,
@@ -394,7 +428,7 @@ class SignInViewModel @Inject constructor(
      *
      * @param enabled Whether to enable bypass OTP mode.
      */
-    fun updateBypassOTP(enabled: Boolean) {
+    private fun updateBypassOTP(enabled: Boolean) {
         _signInUiState.updateState {
             copy(isBypassOTP = enabled)
         }
@@ -403,7 +437,7 @@ class SignInViewModel @Inject constructor(
     /**
      * Deletes all data (for testing/debugging).
      */
-    fun deleteAllData() {
+    private fun deleteAllData() {
         viewModelScope.launch(Dispatchers.IO) {
             // TODO: Implement data deletion if needed
             authRepository.clearLoginModel()

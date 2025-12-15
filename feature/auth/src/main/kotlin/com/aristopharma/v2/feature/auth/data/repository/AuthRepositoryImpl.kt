@@ -19,7 +19,7 @@ package com.aristopharma.v2.feature.auth.data.repository
 import com.aristopharma.v2.core.ui.utils.BaseResponse
 import com.aristopharma.v2.core.utils.suspendRunCatching
 import com.aristopharma.v2.feature.auth.data.datasource.local.AuthLocalDataSource
-import com.aristopharma.v2.feature.auth.data.datasource.remote.AuthRemoteDataSource
+import com.aristopharma.v2.feature.auth.data.datasource.remote.AuthApiService
 import com.aristopharma.v2.feature.auth.data.model.LoginModel
 import com.aristopharma.v2.feature.auth.data.model.LoginPostModel
 import com.aristopharma.v2.feature.auth.data.model.LoginResponseModel
@@ -35,32 +35,39 @@ import javax.inject.Inject
  * @param localDataSource The local data source for storing user data.
  */
 class AuthRepositoryImpl @Inject constructor(
-    private val remoteDataSource: AuthRemoteDataSource,
     private val localDataSource: AuthLocalDataSource,
+    private val apiService: AuthApiService,
 ) : AuthRepository {
 
     override suspend fun login(model: LoginPostModel): Result<LoginResponseModel> {
-        return suspendRunCatching {
-            val response = remoteDataSource.login(model)
+        return try {
+            val response = apiService.login(model).data
                 ?: throw IllegalStateException("No response received from server")
-            
-            validateAndExtractResponse(
-                response = response,
-                operationName = "Login",
-            )
+
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
     override suspend fun validateOTP(model: OTPValidationRequest): Result<OTPValidationResponse> {
-        return suspendRunCatching {
-            val response = remoteDataSource.validateOTP(model)
+        return try {
+            val response = apiService.validateOTP(model).data
+                ?: throw IllegalStateException("No response received from server")
+
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+/*        return suspendRunCatching {
+            val response = apiService.validateOTP(model)
                 ?: throw IllegalStateException("No response received from server")
             
             validateAndExtractResponse(
                 response = response,
                 operationName = "OTP validation",
             )
-        }
+        }*/
     }
 
     /**

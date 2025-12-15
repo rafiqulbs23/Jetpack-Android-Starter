@@ -16,6 +16,8 @@
 
 package com.aristopharma.v2.core.di
 
+import com.aristopharma.v2.feature.auth.data.repository.AuthRepositoryImpl
+import com.aristopharma.v2.feature.auth.domain.repository.AuthRepository
 import com.aristopharma.v2.feature.home.data.repository.HomeRepositoryImpl
 import com.aristopharma.v2.feature.home.domain.repository.HomeRepository
 import com.aristopharma.v2.feature.notification.data.repository.NotificationRepositoryImpl
@@ -83,4 +85,10 @@ abstract class RepositoryModule {
     internal abstract fun bindNotificationRepository(
         notificationRepositoryImpl: NotificationRepositoryImpl,
     ): NotificationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        authRepositoryImpl: AuthRepositoryImpl,
+    ): AuthRepository
 }
