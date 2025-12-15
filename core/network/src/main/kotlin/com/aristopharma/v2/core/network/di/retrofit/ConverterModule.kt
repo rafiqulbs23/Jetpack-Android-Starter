@@ -44,7 +44,7 @@ object ConverterModule {
             ignoreUnknownKeys = true
         }
         return json.asConverterFactory(
-            "application/json; charset=UTF8".toMediaType(),
+            "application/json; charset=UTF-8".toMediaType(),
         )
     }
 }
