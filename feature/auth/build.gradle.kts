@@ -32,9 +32,11 @@ android {
     buildTypes {
         debug {
             buildConfigField("Boolean", "ENABLE_BYPASS_OTP", "true")
+            buildConfigField("Boolean", "IS_AUTOMIC_OTP_ENABLE", "true")
         }
         release {
             buildConfigField("Boolean", "ENABLE_BYPASS_OTP", "true")
+            buildConfigField("Boolean", "IS_AUTOMIC_OTP_ENABLE", "true")
         }
     }
 }
@@ -45,7 +47,7 @@ dependencies {
     implementation(project(":core:android"))
     implementation(project(":core:preferences"))
     implementation(project(":core:network"))
-    
+
     // ... DataStore
     implementation(libs.androidx.dataStore.core)
     

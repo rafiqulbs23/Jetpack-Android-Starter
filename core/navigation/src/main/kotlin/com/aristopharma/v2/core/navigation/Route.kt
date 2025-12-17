@@ -94,6 +94,18 @@ data object AuthNavGraph
 data object SignIn
 
 /**
+ * OTP verification screen destination.
+ * 
+ * @param username Employee ID for OTP verification.
+ * @param password Password to save after successful verification.
+ */
+@Serializable
+data class OtpVerification(
+    val username: String,
+    val password: String
+)
+
+/**
  * Navigate to the auth navigation graph.
  *
  * @param navOptions [NavOptions].

@@ -24,9 +24,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navOptions
 import androidx.navigation.navigation
+import androidx.navigation.toRoute
 import com.aristopharma.v2.core.ui.utils.SnackbarAction
 import com.aristopharma.v2.feature.splash.presentation.screens.SplashScreen
-import com.aristopharma.v2.feature.auth.presentation.screen.signin.SignInScreen
 import com.aristopharma.v2.feature.home.presentation.screen.home.HomeScreen
 import com.aristopharma.v2.feature.home.presentation.screen.item.ItemScreen
 import com.aristopharma.v2.feature.profile.presentation.screen.ProfileScreen
@@ -90,25 +90,60 @@ fun NavGraphBuilder.homeNavGraph(
 // ============================================================================
 
 /**
- * Sign in screen.
+ * Sign in screen route extension for NavGraphBuilder.
  *
  * @param navController The navigation controller for managing navigation.
  * @param onShowSnackbar Callback to show a snackbar.
+ * @param content The composable content for the sign-in screen (provided by app module).
  */
 fun NavGraphBuilder.signInScreen(
     navController: NavHostController,
     onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
+
+    content: @Composable (NavHostController, () -> Unit, suspend (String, SnackbarAction, Throwable?) -> Boolean) -> Unit,
 ) {
     composable<SignIn> {
-        SignInScreen(
-            onNavigateToDashboard = {
+        content(
+            navController,
+            {
+                // onNavigateToDashboard
                 val navOptions = navOptions {
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     launchSingleTop = true
                 }
                 navController.navigateToHomeNavGraph(navOptions)
             },
-            onShowSnackbar = onShowSnackbar,
+            onShowSnackbar,
+
+        )
+    }
+}
+
+/**
+ * OTP verification screen route extension for NavGraphBuilder.
+ *
+ * @param navController The navigation controller for managing navigation.
+ * @param content The composable content for the OTP screen (provided by app module).
+ */
+fun NavGraphBuilder.otpVerificationScreen(
+    navController: NavHostController,
+    content: @Composable (NavHostController, String, String, () -> Unit) -> Unit,
+) {
+    composable<OtpVerification> { backStackEntry ->
+        val otpVerification = backStackEntry.toRoute<OtpVerification>()
+        
+        content(
+            navController,
+            otpVerification.username,
+            otpVerification.password,
+            {
+                // onLoginSuccess
+                val navOptions = navOptions {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    launchSingleTop = true
+                }
+                navController.navigateToHomeNavGraph(navOptions)
+            }
         )
     }
 }
@@ -200,10 +235,29 @@ fun AppNavHost(
         )
         authNavGraph(
             nestedNavGraphs = {
-                signInScreen(
-                    navController = navController,
-                    onShowSnackbar = onShowSnackbar,
-                )
+                signInScreen(navController, onShowSnackbar) { nav, onNavigateToDashboard, snackbar ->
+                    com.aristopharma.v2.feature.auth.presentation.screen.signin.SignInScreen(
+                        navController = nav,
+                        onNavigateToDashboard = onNavigateToDashboard,
+                        onShowSnackbar = snackbar,
+                        navigatrTorOtp = { username, password ->
+                            navController.navigate(
+                                OtpVerification(
+                                    username = username,
+                                    password = password,
+                                )
+                            )
+                        }
+                    )
+                }
+                otpVerificationScreen(navController) { nav, username, password, onLoginSuccess ->
+                    com.aristopharma.v2.feature.auth.presentation.screen.OtpScreen(
+                        username = username,
+                        password = password,
+                        navController = nav,
+                        onLoginSuccess = onLoginSuccess
+                    )
+                }
             },
         )
         homeNavGraph(

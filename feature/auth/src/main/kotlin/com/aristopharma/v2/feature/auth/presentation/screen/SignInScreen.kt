@@ -75,15 +75,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.ImeAction
+import androidx.navigation.NavHostController
 import com.aristopharma.v2.feature.auth.R
 import com.aristopharma.v2.core.ui.utils.SnackbarAction
 import com.aristopharma.v2.core.ui.utils.StatefulComposable
 import com.aristopharma.v2.feature.auth.domain.model.SignInEvent
-import com.aristopharma.v2.feature.auth.presentation.component.OtpWaitingDialog
-import com.aristopharma.v2.feature.auth.presentation.utils.OtpReceivedListener
-import com.aristopharma.v2.feature.auth.presentation.utils.SmsRetrieverHelper
+import com.aristopharma.v2.feature.auth.domain.model.SignInState
 import com.aristopharma.v2.feature.auth.presentation.viewmodel.SignInViewModel
 import kotlinx.coroutines.delay
 
@@ -93,66 +90,27 @@ import kotlinx.coroutines.delay
  */
 @Composable
 fun SignInScreen(
+    navController: NavHostController,
     onNavigateToDashboard: () -> Unit,
     onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
     signInViewModel: SignInViewModel = hiltViewModel(),
+    navigatrTorOtp : (username: String, password: String)->Unit
 ) {
     val signInState by signInViewModel.signInUiState.collectAsStateWithLifecycle()
     val event = signInViewModel::onEvent
     val context = LocalContext.current
 
-    // SMS Retriever setup
-    val smsRetrieverHelper = remember { SmsRetrieverHelper(context) }
-    val otpListener = remember {
-        object : OtpReceivedListener {
-            override fun onOtpReceived(otp: String) {
-                signInViewModel.onEvent(SignInEvent.ValidateOTP(otp))
+
+    // Handle navigation to OTP screen after signup
+    LaunchedEffect(signInState.data.isWaitingForSMS) {
+        signInState.data.isWaitingForSMS.getContentIfNotHandled()?.let { shouldNavigate ->
+            if (shouldNavigate) {
+                // Navigate to OTP screen with username and password using type-safe navigation
+                navigatrTorOtp(
+                    signInState.data.empId.value,
+                    signInState.data.password.value
+                )
             }
-
-            override fun onOtpTimeout() {
-                // Handle timeout - could show error message via snackbar
-            }
-        }
-    }
-
-    // Register and unregister SMS receiver
-    DisposableEffect(Unit) {
-        val intentFilter = smsRetrieverHelper.startSmsRetriever(otpListener)
-        val receiver = smsRetrieverHelper.getReceiver()
-        
-        if (receiver != null && context is android.app.Activity) {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                context.registerReceiver(receiver, intentFilter, android.content.Context.RECEIVER_EXPORTED)
-            } else {
-                @Suppress("DEPRECATION")
-                context.registerReceiver(receiver, intentFilter)
-            }
-        }
-
-        onDispose {
-            receiver?.let {
-                try {
-                    context.unregisterReceiver(it)
-                } catch (e: Exception) {
-                    // Receiver might already be unregistered
-                }
-            }
-            smsRetrieverHelper.cleanup()
-        }
-    }
-
-    // Handle navigation to dashboard
-    LaunchedEffect(signInState.data.isSignUpSuccessful) {
-        if (signInState.data.isSignUpSuccessful) {
-            onNavigateToDashboard()
-        }
-    }
-
-    // Handle SMS waiting dialog
-    var showOtpDialog by remember { mutableStateOf(false) }
-    signInState.data.isWaitingForSMS.getContentIfNotHandled()?.let {
-        if (it) {
-            showOtpDialog = true
         }
     }
 
@@ -164,32 +122,17 @@ fun SignInScreen(
         SignInScreenContent(
             state = signInState.data,
             onEvent = event,
+            navController = navController,
             onNavigateToDashboard = onNavigateToDashboard,
-        )
-    }
-
-    // OTP Waiting Dialog
-    if (showOtpDialog) {
-        OtpWaitingDialog(
-            onDismiss = { showOtpDialog = false },
-            onRetry = {
-                showOtpDialog = false
-                signInViewModel.onEvent(
-                    SignInEvent.ValidateAndSignUp(
-                        signInState.data.empId.value,
-                        signInState.data.password.value,
-                        signInState.data.confirmPassword.value,
-                    ),
-                )
-            },
         )
     }
 }
 
 @Composable
 private fun SignInScreenContent(
-    state: com.aristopharma.v2.feature.auth.domain.model.SignInState,
+    state: SignInState,
     onEvent: (SignInEvent) -> Unit,
+    navController: NavHostController,
     onNavigateToDashboard: () -> Unit,
 ) {
     var showPassword by rememberSaveable { mutableStateOf(false) }
@@ -211,7 +154,7 @@ private fun SignInScreenContent(
 
     LaunchedEffect(Unit) {
         logoVisible = true
-        kotlinx.coroutines.delay(300)
+        delay(300)
         inputVisible = true
     }
 
@@ -394,7 +337,11 @@ private fun SignInScreenContent(
                         if (state.isBypassOTP) {
                             onEvent(SignInEvent.LoginBypass(state.empId.value, state.password.value))
                         } else {
-                            onEvent(SignInEvent.DeviceLogin(state.empId.value, state.password.value, onNavigateToDashboard))
+                            onEvent(SignInEvent.DeviceLogin(
+                                state.empId.value,
+                                state.password.value,
+                                openDashboard = onNavigateToDashboard,
+                            ))
                         }
                     },
                     modifier = Modifier
@@ -432,7 +379,11 @@ private fun SignInScreenContent(
             // Verify button
             AnimatedVisibility(visible = state.isVerifyBtnVisible) {
                 OutlinedButton(
-                    onClick = { onEvent(SignInEvent.ValidateOTP(state.otp.value)) },
+                    onClick = { onEvent(SignInEvent.ValidateAndSignUp(
+                        state.empId.value,
+                        state.password.value,
+                        state.confirmPassword.value,
+                    )) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
