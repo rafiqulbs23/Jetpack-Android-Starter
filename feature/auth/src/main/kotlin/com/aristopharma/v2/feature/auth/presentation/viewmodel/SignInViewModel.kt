@@ -80,6 +80,7 @@ class SignInViewModel @Inject constructor(
             )
             is SignInEvent.ValidateOTP -> validateOTP(event.otp)
             is SignInEvent.DeviceLogin -> deviceLogin(event.empId, event.password, event.openDashboard)
+            is SignInEvent.Login -> validateAndSignIn(event.empId, event.password,)
             is SignInEvent.LoginBypass -> loginBypass(event.empId, event.password)
             is SignInEvent.DeleteAllData -> deleteAllData()
             is SignInEvent.ShowSignUpUi -> showSignUpUi()
@@ -169,6 +170,28 @@ class SignInViewModel @Inject constructor(
     }
 
     /**
+     * Validates input and initiates sign in process.
+     */
+    fun validateAndSignIn(user: String, password: String) {
+        val validation = validateInput(user, password,)
+        if (validation != null) {
+            _signInUiState.update {
+                it.copy(
+                    error = OneTimeEvent(IllegalArgumentException(validation)),
+                )
+            }
+            return
+        }
+
+        loginModel = loginModel.copy(
+            empId = user,
+            password = password,
+        )
+
+        generateFCMTokenAndSignUp()
+    }
+
+    /**
      * Validates user input for sign up.
      */
     private fun validateInput(user: String, password: String, confirmPassword: String): String? {
@@ -177,6 +200,18 @@ class SignInViewModel @Inject constructor(
             password.isEmpty() || confirmPassword.isEmpty() -> "Password cannot be empty"
             password.length < 4 -> "Password must be at least 4 digits"
             password != confirmPassword -> "Passwords don't match"
+            else -> null
+        }
+    }
+
+    /**
+     * Validates user input for sign in.
+     */
+    private fun validateInput(user: String, password: String): String? {
+        return when {
+            user.isEmpty() -> "User cannot be empty"
+            password.isEmpty()  -> "Password cannot be empty"
+            password.length < 4 -> "Password must be at least 4 digits"
             else -> null
         }
     }
@@ -361,7 +396,7 @@ class SignInViewModel @Inject constructor(
                     _signInUiState.update {
                         it.copy(
                             loading = false,
-                            data = it.data.copy(isSignUpSuccessful = true),
+                            data = it.data.copy(isSignUpSuccessful = true, isWaitingForSMS = OneTimeEvent(true)),
                         )
                     }
                 },

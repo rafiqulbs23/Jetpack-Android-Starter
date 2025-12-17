@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:preferences"))
     implementation(project(":core:network"))
+    implementation(project(":feature:auth"))
 
     // ... Retrofit
     implementation(libs.retrofit.core)

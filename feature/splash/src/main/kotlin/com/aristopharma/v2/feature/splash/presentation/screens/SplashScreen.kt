@@ -15,21 +15,59 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.aristopharma.v2.core.preferences.data.UserPreferencesDataSource
 import com.aristopharma.v2.feature.splash.R
 import com.aristopharma.v2.feature.splash.presentation.viewModel.SplashScreenViewModel
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+/**
+ * Entry point to access UserPreferencesDataSource from Hilt.
+ */
+@dagger.hilt.EntryPoint
+@dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
+interface SplashScreenEntryPoint {
+    fun userPreferencesDataSource(): UserPreferencesDataSource
+}
 
 @Composable
 fun SplashScreen(
-    onNavigate: () -> Unit = {},
+    onNavigateToDashboard: () -> Unit = {},
+    onNavigateToSignIn: () -> Unit = {},
     viewModel: SplashScreenViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+    
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect {
-            onNavigate()
+            // Get UserPreferencesDataSource from Hilt
+            val entryPoint = EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                SplashScreenEntryPoint::class.java
+            )
+            val userPreferencesDataSource = entryPoint.userPreferencesDataSource()
+            
+            // Check if user is logged in
+            val isLoggedIn = withContext(Dispatchers.IO) {
+                try {
+                    val userId = userPreferencesDataSource.getUserIdOrThrow()
+                    userId.isNotEmpty()
+                } catch (e: IllegalStateException) {
+                    false
+                }
+            }
+            
+            if (isLoggedIn) {
+                onNavigateToDashboard()
+            } else {
+                onNavigateToSignIn()
+            }
         }
     }
 

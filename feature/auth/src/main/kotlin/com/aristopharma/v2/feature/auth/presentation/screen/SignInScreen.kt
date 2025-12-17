@@ -105,11 +105,18 @@ fun SignInScreen(
     LaunchedEffect(signInState.data.isWaitingForSMS) {
         signInState.data.isWaitingForSMS.getContentIfNotHandled()?.let { shouldNavigate ->
             if (shouldNavigate) {
+
+                if (signInState.data.isBypassOTP){
+                    onNavigateToDashboard()
+
+                }else{
+                    navigatrTorOtp(
+                        signInState.data.empId.value,
+                        signInState.data.password.value
+                    )
+                }
                 // Navigate to OTP screen with username and password using type-safe navigation
-                navigatrTorOtp(
-                    signInState.data.empId.value,
-                    signInState.data.password.value
-                )
+
             }
         }
     }
@@ -337,10 +344,9 @@ private fun SignInScreenContent(
                         if (state.isBypassOTP) {
                             onEvent(SignInEvent.LoginBypass(state.empId.value, state.password.value))
                         } else {
-                            onEvent(SignInEvent.DeviceLogin(
+                            onEvent(SignInEvent.Login(
                                 state.empId.value,
                                 state.password.value,
-                                openDashboard = onNavigateToDashboard,
                             ))
                         }
                     },

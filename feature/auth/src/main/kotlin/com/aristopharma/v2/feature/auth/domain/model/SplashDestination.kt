@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-plugins {
-    alias(libs.plugins.jetpack.ui.library)
-    alias(libs.plugins.jetpack.dokka)
-    alias(libs.plugins.kotlin.compose.compiler)
-}
+package com.aristopharma.v2.feature.auth.domain.model
 
-android {
-    namespace = "com.aristopharma.v2.core.navigation"
-}
-
-dependencies {
-    // ... Core
-    implementation(project(":core:ui"))
+/**
+ * Navigation destination from splash screen based on authentication status.
+ */
+sealed interface SplashDestination {
+    /**
+     * Navigate to Dashboard - user is already authenticated.
+     */
+    data object Dashboard : SplashDestination
     
-    // ... Feature modules (for screen composables)
-    implementation(project(":feature:auth"))
-    implementation(project(":feature:dashboard"))
-    implementation(project(":feature:home"))
-    implementation(project(":feature:profile"))
-    implementation(project(":feature:splash"))
+    /**
+     * Navigate to SignIn - user needs to authenticate.
+     */
+    data object SignIn : SplashDestination
 }
-

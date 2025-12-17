@@ -26,6 +26,7 @@ import androidx.navigation.navOptions
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.aristopharma.v2.core.ui.utils.SnackbarAction
+import com.aristopharma.v2.feature.dashboard.presentation.screen.DashboardScreen
 import com.aristopharma.v2.feature.splash.presentation.screens.SplashScreen
 import com.aristopharma.v2.feature.home.presentation.screen.home.HomeScreen
 import com.aristopharma.v2.feature.home.presentation.screen.item.ItemScreen
@@ -111,7 +112,7 @@ fun NavGraphBuilder.signInScreen(
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     launchSingleTop = true
                 }
-                navController.navigateToHomeNavGraph(navOptions)
+                navController.navigate(Dashboard, navOptions)
             },
             onShowSnackbar,
 
@@ -142,7 +143,7 @@ fun NavGraphBuilder.otpVerificationScreen(
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     launchSingleTop = true
                 }
-                navController.navigateToHomeNavGraph(navOptions)
+                navController.navigate(Dashboard, navOptions)
             }
         )
     }
@@ -162,26 +163,71 @@ fun NavGraphBuilder.authNavGraph(
 }
 
 // ============================================================================
-// Profile Navigation Graph
+// Dashboard Navigation
 // ============================================================================
+
+/**
+ * Dashboard screen route extension for NavGraphBuilder.
+ *
+ * @param navController The navigation controller for managing navigation.
+ * @param onShowSnackbar Callback to show a snackbar.
+ * @param content The composable content for the dashboard screen (provided by app module).
+ */
+fun NavGraphBuilder.dashboardScreen(
+    navController: NavHostController,
+    onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
+    content: @Composable (NavHostController, () -> Unit, () -> Unit, suspend (String, SnackbarAction, Throwable?) -> Boolean) -> Unit,
+) {
+    composable<Dashboard> {
+        content(
+            navController,
+            {
+                // onMenuItemClick - navigate to respective screens
+                // TODO: Implement menu item navigation
+            },
+            {
+                // onNotificationClick
+                // TODO: Navigate to notifications
+            },
+            onShowSnackbar
+        )
+    }
+}
+
+// ============================================================================
+// Splash Screen
+// ============================================================================
+
+
 
 /**
  * Splash screen.
  *
- * Navigates to the next route once the view model emits a navigation event.
+ * @param navController The navigation controller.
+ * @param onShowSnackbar Callback to show snackbar.
+ * @param content The composable content for splash screen (provided by app module).
  */
 fun NavGraphBuilder.splashScreen(
     navController: NavHostController,
     onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
+    content: @Composable (() -> Unit, () -> Unit) -> Unit,
 ) {
     composable<Splash> {
-        SplashScreen(
-            onNavigate = {
-                navController.navigate(SignIn) {
+        content(
+            {
+                // onNavigateToDashboard
+                navController.navigate(Dashboard) {
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     launchSingleTop = true
                 }
             },
+            {
+                // onNavigateToSignIn
+                navController.navigate(SignIn) {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         )
     }
 }
@@ -232,7 +278,12 @@ fun AppNavHost(
         splashScreen(
             navController = navController,
             onShowSnackbar = onShowSnackbar,
-        )
+        ) { onNavigateToDashboard, onNavigateToSignIn ->
+            SplashScreen(
+                onNavigateToDashboard = onNavigateToDashboard,
+                onNavigateToSignIn = onNavigateToSignIn,
+            )
+        }
         authNavGraph(
             nestedNavGraphs = {
                 signInScreen(navController, onShowSnackbar) { nav, onNavigateToDashboard, snackbar ->
@@ -260,6 +311,25 @@ fun AppNavHost(
                 }
             },
         )
+        dashboardScreen(navController, onShowSnackbar) { nav, onMenuItemClick, onNotificationClick, snackbar ->
+            DashboardScreen(
+                onMenuItemClick = { menuType ->
+                    // TODO: Navigate based on menu type
+                },
+                onNotificationClick = {
+                    // TODO: Navigate to notifications
+                },
+                onLogout = {
+                    // Navigate to login
+                    val navOptions = navOptions {
+                        popUpTo(nav.graph.startDestinationId) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                    nav.navigate(SignIn, navOptions)
+                },
+                onShowSnackbar = snackbar
+            )
+        }
         homeNavGraph(
             nestedNavGraphs = {
                 homeScreen(

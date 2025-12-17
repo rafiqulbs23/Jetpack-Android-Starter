@@ -75,13 +75,27 @@ class DashboardViewModel @Inject constructor(
      */
     private fun setupModel() {
         viewModelScope.launch {
-            val summary = dashboardRepository.getDashboardSummary()
-            if (summary == null || !summary.isFirstSyncDone) {
-                val empId = userPreferencesDataSource.getUserIdOrThrow()
-                syncNow(empId)
-            } else {
-                _dashboardUiState.updateState {
-                    copy(summary = summary)
+            try {
+                val summary = dashboardRepository.getDashboardSummary()
+                if (summary == null || !summary.isFirstSyncDone) {
+                    // Try to get user ID, but handle case where user is not authenticated yet
+                    val empId = try {
+                        userPreferencesDataSource.getUserIdOrThrow()
+                    } catch (e: IllegalStateException) {
+                        // User not authenticated yet, skip sync for now
+                        return@launch
+                    }
+                    syncNow(empId)
+                } else {
+                    _dashboardUiState.updateState {
+                        copy(summary = summary)
+                    }
+                }
+            } catch (e: Exception) {
+                _dashboardUiState.update {
+                    it.copy(
+                        error = OneTimeEvent(e),
+                    )
                 }
             }
         }

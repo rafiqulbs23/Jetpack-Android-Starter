@@ -36,6 +36,7 @@ sealed interface SignInEvent {
     ) : SignInEvent
     data class ValidateOTP(val otp: String) : SignInEvent
     data class DeviceLogin(val empId: String, val password: String, val openDashboard: () -> Unit) : SignInEvent
+    data class Login(val empId: String, val password: String) : SignInEvent
     data class LoginBypass(val empId: String, val password: String) : SignInEvent
     data object DeleteAllData : SignInEvent
     data object FetchModel : SignInEvent
