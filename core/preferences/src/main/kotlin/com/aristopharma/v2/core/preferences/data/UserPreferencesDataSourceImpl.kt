@@ -73,6 +73,9 @@ internal class UserPreferencesDataSourceImpl @Inject constructor(
                     id = preferencesUserProfile.id,
                     userName = preferencesUserProfile.userName,
                     profilePictureUriString = preferencesUserProfile.profilePictureUriString,
+                    accessToken = preferencesUserProfile.accessToken,
+                    refreshToken = preferencesUserProfile.refreshToken,
+                    fcmToken = preferencesUserProfile.fcmToken,
                 )
             }
         }

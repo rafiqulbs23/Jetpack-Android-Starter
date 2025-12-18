@@ -264,9 +264,13 @@ class SignInViewModel @Inject constructor(
                 onSuccess = { response ->
                     loginModel = loginModel.copy(
                         empId = empId,
+                        empName = response.name,
+                        mobileNo = response.mobileNo,
                         accessToken = response.token,
                         refreshToken = response.refreshToken,
                         otp = response.otpCode?.toString() ?: "",
+                        isFirstLogin = response.isFirstLogin,
+                        userRoleType = response.userRoleType,
                     )
 
                     authRepository.saveLoginModel(loginModel)

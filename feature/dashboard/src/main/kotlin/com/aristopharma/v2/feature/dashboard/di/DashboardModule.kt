@@ -18,14 +18,17 @@ package com.aristopharma.v2.feature.dashboard.di
 
 import com.aristopharma.v2.feature.dashboard.data.datasource.local.DashboardLocalDataSource
 import com.aristopharma.v2.feature.dashboard.data.datasource.local.DashboardLocalDataSourceImpl
+import com.aristopharma.v2.feature.dashboard.data.datasource.remote.DashboardApiService
 import com.aristopharma.v2.feature.dashboard.data.datasource.remote.DashboardRemoteDataSource
 import com.aristopharma.v2.feature.dashboard.data.datasource.remote.DashboardRemoteDataSourceImpl
 import com.aristopharma.v2.feature.dashboard.data.repository.DashboardRepositoryImpl
 import com.aristopharma.v2.feature.dashboard.domain.repository.DashboardRepository
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
 import javax.inject.Singleton
 
 /**
@@ -60,5 +63,19 @@ abstract class DashboardModule {
     abstract fun bindDashboardRepository(
         dashboardRepositoryImpl: DashboardRepositoryImpl,
     ): DashboardRepository
+    
+    companion object {
+        /**
+         * Provides the [DashboardApiService] instance.
+         */
+        @Provides
+        @Singleton
+        fun provideDashboardApiService(retrofit: Retrofit): DashboardApiService {
+            return retrofit.create(DashboardApiService::class.java)
+        }
+    }
 }
+
+
+
 

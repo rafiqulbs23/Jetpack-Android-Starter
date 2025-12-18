@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":core:android"))
     implementation(project(":core:room"))
     implementation(project(":core:network"))
+    implementation(project(":core:preferences"))
     
     // ... Retrofit
     implementation(libs.retrofit.core)

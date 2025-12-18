@@ -24,7 +24,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class OtpViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userPreferencesDataSource: com.aristopharma.v2.core.preferences.data.UserPreferencesDataSource
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OtpUiState())
@@ -122,8 +123,20 @@ class OtpViewModel @Inject constructor(
                     isLoggedIn = true
                 )
                 
-                // Save to local storage
+                // Save to local storage (auth repository)
                 authRepository.saveLoginModel(loginModel)
+                
+                // Save user profile to preferences with tokens
+                userPreferencesDataSource.setUserProfile(
+                    com.aristopharma.v2.core.preferences.model.PreferencesUserProfile(
+                        id = username,
+                        userName = loginModel.empName,
+                        accessToken = loginModel.accessToken,
+                        refreshToken = loginModel.refreshToken,
+                        fcmToken = loginModel.fcmToken,
+                        profilePictureUriString = null
+                    )
+                )
                 
                 // Update UI state to navigate to home
                 _uiState.value = _uiState.value.copy(

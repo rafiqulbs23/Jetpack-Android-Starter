@@ -33,6 +33,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -76,17 +77,41 @@ class DashboardViewModel @Inject constructor(
     private fun setupModel() {
         viewModelScope.launch {
             try {
+                // Get user info from preferences
+                val userId = try {
+                    userPreferencesDataSource.getUserIdOrThrow()
+                } catch (e: IllegalStateException) {
+                    // User not authenticated yet, skip setup
+                    return@launch
+                }
+                
+                val userPrefs = userPreferencesDataSource.getUserDataPreferences()
+                    .first()
+                val userName = userPrefs.userName ?: userPrefs.id
+                
+                // Try to get existing summary from database
                 val summary = dashboardRepository.getDashboardSummary()
+                
                 if (summary == null || !summary.isFirstSyncDone) {
-                    // Try to get user ID, but handle case where user is not authenticated yet
-                    val empId = try {
-                        userPreferencesDataSource.getUserIdOrThrow()
-                    } catch (e: IllegalStateException) {
-                        // User not authenticated yet, skip sync for now
-                        return@launch
+                    // Create initial summary with user info
+                    val initialSummary = DashboardSummary(
+                        employeeName = userName,
+                        employeeId = userId,
+                        attendanceStatus = DashboardSummary.IDLE,
+                        lastSyncTime = "",
+                        postOrderCount = 0,
+                        isFirstSyncDone = false
+                    )
+                    
+                    // Update UI with initial summary
+                    _dashboardUiState.updateState {
+                        copy(summary = initialSummary)
                     }
-                    syncNow(empId)
+                    
+                    // Trigger sync in background
+                    syncNow(userId)
                 } else {
+                    // Use existing summary from database
                     _dashboardUiState.updateState {
                         copy(summary = summary)
                     }
@@ -229,8 +254,35 @@ class DashboardViewModel @Inject constructor(
      * Handles menu item click.
      */
     private fun handleMenuItemClick(menuType: DashboardMenuType) {
-        // TODO: Navigate to appropriate screen based on menu type
-        // This will be handled by the UI layer
+        // Navigation will be handled by the UI layer
+        // For now, show feedback for unavailable features
+        val message = when (menuType) {
+            DashboardMenuType.PROFILE,
+            DashboardMenuType.HOME,
+            DashboardMenuType.SETTINGS,
+            DashboardMenuType.NOTIFICATIONS -> {
+                // These features exist - navigation handled by UI
+                return
+            }
+            DashboardMenuType.START_YOUR_DAY -> "Attendance feature coming soon"
+            DashboardMenuType.DRAFT_ORDER,
+            DashboardMenuType.POST_ORDER,
+            DashboardMenuType.POST_SPECIAL_ORDER -> "Order feature coming soon"
+            DashboardMenuType.ORDER_HISTORY_USER,
+            DashboardMenuType.ORDER_HISTORY_MANAGER -> "Order history coming soon"
+            DashboardMenuType.LEAVE,
+            DashboardMenuType.LEAVE_MANAGEMENT -> "Leave management coming soon"
+            DashboardMenuType.CHEMIST_SALES_REPORT,
+            DashboardMenuType.PRODUCT_SALES_REPORT,
+            DashboardMenuType.SALES_SUMMARY_REPORT -> "Reports feature coming soon"
+            else -> "Feature coming soon"
+        }
+        
+        _dashboardUiState.update {
+            it.copy(
+                error = OneTimeEvent(IllegalStateException(message))
+            )
+        }
     }
 
     /**

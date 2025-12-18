@@ -28,11 +28,8 @@ dependencies {
     // ... Core
     implementation(project(":core:ui"))
     
-    // ... Feature modules (for screen composables)
-    implementation(project(":feature:auth"))
-    implementation(project(":feature:dashboard"))
-    implementation(project(":feature:home"))
-    implementation(project(":feature:profile"))
-    implementation(project(":feature:splash"))
+    // NO feature module dependencies to avoid circular dependencies
+    // Feature modules will depend on core:navigation for routes
+    // App module will wire screens via callbacks
 }
 

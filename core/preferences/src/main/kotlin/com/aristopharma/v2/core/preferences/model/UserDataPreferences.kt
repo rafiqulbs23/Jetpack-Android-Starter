@@ -35,6 +35,9 @@ data class UserDataPreferences(
     val id: String = String(),
     val userName: String? = null,
     val profilePictureUriString: String? = null,
+    val accessToken: String = "",
+    val refreshToken: String = "",
+    val fcmToken: String = "",
     val darkThemeConfigPreferences: DarkThemeConfigPreferences = DarkThemeConfigPreferences.FOLLOW_SYSTEM,
     val useDynamicColor: Boolean = true,
 )

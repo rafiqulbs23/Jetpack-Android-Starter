@@ -44,6 +44,8 @@ dependencies {
 
     // ... Feature
     dokka(project(":feature:auth"))
+    dokka(project(":feature:dashboard"))
+    dokka(project(":feature:attendance"))
     dokka(project(":feature:home"))
     dokka(project(":feature:profile"))
     dokka(project(":feature:settings"))

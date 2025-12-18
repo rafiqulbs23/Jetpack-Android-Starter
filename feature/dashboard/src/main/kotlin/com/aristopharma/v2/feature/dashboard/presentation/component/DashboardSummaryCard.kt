@@ -46,6 +46,7 @@ fun DashboardSummaryCard(
     summary: DashboardSummary,
     onSyncClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
 ) {
     Card(
         modifier = modifier,
@@ -103,8 +104,9 @@ fun DashboardSummaryCard(
             Button(
                 onClick = onSyncClick,
                 modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading,
             ) {
-                Text("Sync Now")
+                Text(if (isLoading) "Syncing..." else "Sync Now")
             }
         }
     }

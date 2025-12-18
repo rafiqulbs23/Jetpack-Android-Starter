@@ -119,6 +119,7 @@ fun DashboardScreen(
                             dashboardViewModel.onEvent(DashboardEvent.SyncNow(empId))
                         }
                     },
+                    isLoading = uiState.loading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
@@ -150,9 +151,11 @@ fun DashboardScreen(
                                     val menuType = enumValues<DashboardMenuType>()
                                         .find { it.name == menuItem.menuItemName }
                                     menuType?.let {
+                                        // First notify ViewModel (for feedback on unavailable features)
                                         dashboardViewModel.onEvent(
                                             DashboardEvent.MenuItemClick(it),
                                         )
+                                        // Then call navigation callback (for available features)
                                         onMenuItemClick(it)
                                     }
                                 },

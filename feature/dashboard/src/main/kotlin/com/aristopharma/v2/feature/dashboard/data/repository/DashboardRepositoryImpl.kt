@@ -82,5 +82,24 @@ class DashboardRepositoryImpl @Inject constructor(
             remoteDataSource.deleteUserData(empId)
         }
     }
+    
+    override suspend fun getTerritoryItems(empId: String): Result<List<com.aristopharma.v2.feature.dashboard.data.model.sync.TerritoryModel>> {
+        return suspendRunCatching {
+            remoteDataSource.getTerritoryItems(empId)
+        }
+    }
+    
+    override suspend fun saveFirstSyncData(data: com.aristopharma.v2.feature.dashboard.data.model.sync.FirstSyncResponse) {
+        localDataSource.saveFirstSyncData(data)
+    }
+    
+    override suspend fun isFirstSyncDone(): Boolean {
+        val summary = getDashboardSummary()
+        return summary?.isFirstSyncDone ?: false
+    }
+    
+    override suspend fun deleteSyncData() {
+        localDataSource.deleteSyncData()
+    }
 }
 

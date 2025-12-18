@@ -21,6 +21,12 @@ package com.aristopharma.v2.feature.dashboard.data.model
  * Used for navigation and menu item identification.
  */
 enum class DashboardMenuType {
+    // Navigation
+    PROFILE,
+    HOME,
+    SETTINGS,
+    NOTIFICATIONS,
+    
     // Order Management
     DRAFT_ORDER,
     POST_ORDER,

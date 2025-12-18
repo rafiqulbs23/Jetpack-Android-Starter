@@ -18,38 +18,37 @@ package com.aristopharma.v2.core.room.di
 
 import android.content.Context
 import androidx.room.Room
+import com.aristopharma.v2.core.room.data.JetpackDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import com.aristopharma.v2.core.room.data.JetpackDatabase
 import javax.inject.Singleton
 
 /**
- * Dagger module for database.
+ * Hilt module for providing database-related dependencies.
+ * 
+ * NOTE: AppDatabase has been removed to avoid circular dependencies.
+ * Each feature module now provides its own database.
+ * 
+ * JetpackDatabase is provided here for the home feature.
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-
-    private const val ROOM_DATABASE_NAME = "com.aristopharma.v2.jetpack.room"
-
-    /**
-     * Get the database for Jetpack.
-     *
-     * @param appContext The application context.
-     * @return The database for Jetpack.
-     */
-    @Singleton
+    
     @Provides
-    fun provideRoomDatabase(
-        @ApplicationContext appContext: Context,
+    @Singleton
+    fun provideJetpackDatabase(
+        @ApplicationContext context: Context
     ): JetpackDatabase {
         return Room.databaseBuilder(
-            appContext,
+            context,
             JetpackDatabase::class.java,
-            ROOM_DATABASE_NAME,
-        ).fallbackToDestructiveMigration(true).build()
+            "jetpack_database"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 }

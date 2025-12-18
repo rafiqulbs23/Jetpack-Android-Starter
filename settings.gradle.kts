@@ -63,6 +63,7 @@ include(":app")
 
 // ... Core
 include(":core:android")
+include(":core:database")
 include(":core:di")
 include(":core:network")
 include(":core:navigation")
@@ -72,6 +73,7 @@ include(":core:ui")
 
 // ... Feature
 include(":feature:auth")
+include(":feature:attendance")
 include(":feature:dashboard")
 include(":feature:home")
 include(":feature:notification")

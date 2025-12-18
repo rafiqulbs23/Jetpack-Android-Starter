@@ -19,7 +19,6 @@ package com.aristopharma.v2.compose.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.aristopharma.v2.compose.ui.JetpackAppState
-import com.aristopharma.v2.core.navigation.AppNavHost
 import com.aristopharma.v2.core.ui.utils.SnackbarAction
 
 /**

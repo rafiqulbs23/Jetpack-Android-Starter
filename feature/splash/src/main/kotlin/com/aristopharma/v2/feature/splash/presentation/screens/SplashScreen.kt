@@ -20,21 +20,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.aristopharma.v2.core.di.NavigationEntryPoint
 import com.aristopharma.v2.core.preferences.data.UserPreferencesDataSource
 import com.aristopharma.v2.feature.splash.R
 import com.aristopharma.v2.feature.splash.presentation.viewModel.SplashScreenViewModel
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
-/**
- * Entry point to access UserPreferencesDataSource from Hilt.
- */
-@dagger.hilt.EntryPoint
-@dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
-interface SplashScreenEntryPoint {
-    fun userPreferencesDataSource(): UserPreferencesDataSource
-}
 
 @Composable
 fun SplashScreen(
@@ -46,10 +38,10 @@ fun SplashScreen(
     
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect {
-            // Get UserPreferencesDataSource from Hilt
+            // Get UserPreferencesDataSource from Hilt using centralized NavigationEntryPoint
             val entryPoint = EntryPointAccessors.fromApplication(
                 context.applicationContext,
-                SplashScreenEntryPoint::class.java
+                NavigationEntryPoint::class.java
             )
             val userPreferencesDataSource = entryPoint.userPreferencesDataSource()
             

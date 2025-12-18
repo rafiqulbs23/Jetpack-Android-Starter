@@ -39,7 +39,7 @@ fun UserDataPreferences.toProfile(): Profile {
  */
 fun PreferencesUserProfile.toProfile(): Profile {
     return Profile(
-        userName = userName.ifEmpty { "Anonymous" },
+        userName = userName?:"Anonymous",
         profilePictureUri = profilePictureUriString,
     )
 }

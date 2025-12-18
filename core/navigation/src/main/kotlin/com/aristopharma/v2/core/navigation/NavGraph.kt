@@ -26,11 +26,8 @@ import androidx.navigation.navOptions
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.aristopharma.v2.core.ui.utils.SnackbarAction
-import com.aristopharma.v2.feature.dashboard.presentation.screen.DashboardScreen
-import com.aristopharma.v2.feature.splash.presentation.screens.SplashScreen
-import com.aristopharma.v2.feature.home.presentation.screen.home.HomeScreen
-import com.aristopharma.v2.feature.home.presentation.screen.item.ItemScreen
-import com.aristopharma.v2.feature.profile.presentation.screen.ProfileScreen
+
+// NO direct screen imports - screens are provided via callbacks from app module
 import kotlin.reflect.KClass
 
 // ============================================================================
@@ -42,16 +39,15 @@ import kotlin.reflect.KClass
  *
  * @param onJetpackClick The click listener for the jetpack.
  * @param onShowSnackbar The snackbar listener.
+ * @param content The composable content for the home screen (provided by app module).
  */
 fun NavGraphBuilder.homeScreen(
     onJetpackClick: (String) -> Unit,
     onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
+    content: @Composable ((String) -> Unit, suspend (String, SnackbarAction, Throwable?) -> Boolean) -> Unit,
 ) {
     composable<Home> {
-        HomeScreen(
-            onJetpackClick = onJetpackClick,
-            onShowSnackbar = onShowSnackbar,
-        )
+        content(onJetpackClick, onShowSnackbar)
     }
 }
 
@@ -60,16 +56,15 @@ fun NavGraphBuilder.homeScreen(
  *
  * @param onBackClick The back click listener.
  * @param onShowSnackbar The snackbar listener.
+ * @param content The composable content for the item screen (provided by app module).
  */
 fun NavGraphBuilder.itemScreen(
     onBackClick: () -> Unit,
     onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
+    content: @Composable (() -> Unit, suspend (String, SnackbarAction, Throwable?) -> Boolean) -> Unit,
 ) {
     composable<Item> {
-        ItemScreen(
-            onBackClick = onBackClick,
-            onShowSnackbar = onShowSnackbar,
-        )
+        content(onBackClick, onShowSnackbar)
     }
 }
 
@@ -240,14 +235,14 @@ fun NavGraphBuilder.splashScreen(
  * Adds the Profile screen to the navigation graph.
  *
  * @param onShowSnackbar Lambda function to show a snackbar message.
+ * @param content The composable content for the profile screen (provided by app module).
  */
 fun NavGraphBuilder.profileScreen(
     onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
+    content: @Composable (suspend (String, SnackbarAction, Throwable?) -> Boolean) -> Unit,
 ) {
     composable<Profile> {
-        ProfileScreen(
-            onShowSnackbar = onShowSnackbar,
-        )
+        content(onShowSnackbar)
     }
 }
 
@@ -255,121 +250,8 @@ fun NavGraphBuilder.profileScreen(
 // Navigation Host
 // ============================================================================
 
-/**
- * Composable function that sets up the navigation host for the application.
- *
- * @param navController The navigation controller for managing navigation.
- * @param startDestination The starting destination based on user login status.
- * @param onShowSnackbar A lambda function to show a snackbar with a message and an action.
- * @param modifier The modifier to be applied to the NavHost.
- */
-@Composable
-fun AppNavHost(
-    navController: NavHostController,
-    startDestination: KClass<*>,
-    onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
-    modifier: Modifier = Modifier,
-) {
-    NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        modifier = modifier,
-    ) {
-        splashScreen(
-            navController = navController,
-            onShowSnackbar = onShowSnackbar,
-        ) { onNavigateToDashboard, onNavigateToSignIn ->
-            SplashScreen(
-                onNavigateToDashboard = onNavigateToDashboard,
-                onNavigateToSignIn = onNavigateToSignIn,
-            )
-        }
-        authNavGraph(
-            nestedNavGraphs = {
-                signInScreen(navController, onShowSnackbar) { nav, onNavigateToDashboard, snackbar ->
-                    com.aristopharma.v2.feature.auth.presentation.screen.signin.SignInScreen(
-                        navController = nav,
-                        onNavigateToDashboard = onNavigateToDashboard,
-                        onShowSnackbar = snackbar,
-                        navigatrTorOtp = { username, password ->
-                            navController.navigate(
-                                OtpVerification(
-                                    username = username,
-                                    password = password,
-                                )
-                            )
-                        }
-                    )
-                }
-                otpVerificationScreen(navController) { nav, username, password, onLoginSuccess ->
-                    com.aristopharma.v2.feature.auth.presentation.screen.OtpScreen(
-                        username = username,
-                        password = password,
-                        navController = nav,
-                        onLoginSuccess = onLoginSuccess
-                    )
-                }
-            },
-        )
-        dashboardScreen(navController, onShowSnackbar) { nav, onMenuItemClick, onNotificationClick, snackbar ->
-            DashboardScreen(
-                onMenuItemClick = { menuType ->
-                    // TODO: Navigate based on menu type
-                },
-                onNotificationClick = {
-                    // TODO: Navigate to notifications
-                },
-                onLogout = {
-                    // Navigate to login
-                    val navOptions = navOptions {
-                        popUpTo(nav.graph.startDestinationId) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                    nav.navigate(SignIn, navOptions)
-                },
-                onShowSnackbar = snackbar
-            )
-        }
-        homeNavGraph(
-            nestedNavGraphs = {
-                homeScreen(
-                    onJetpackClick = { itemId -> navController.navigateToItemScreen(itemId) },
-                    onShowSnackbar = onShowSnackbar,
-                )
-                itemScreen(
-                    onBackClick = navController::popBackStack,
-                    onShowSnackbar = onShowSnackbar,
-                )
-            },
-        )
-        profileScreen(
-            onShowSnackbar = onShowSnackbar,
-        )
-    }
-}
-
-/**
- * Composable function that sets up the navigation host with automatic start destination selection.
- *
- * @param navController The navigation controller for managing navigation.
- * @param isUserLoggedIn Whether the user is logged in.
- * @param onShowSnackbar A lambda function to show a snackbar with a message and an action.
- * @param modifier The modifier to be applied to the NavHost.
- */
-@Composable
-fun AppNavHost(
-    navController: NavHostController,
-    isUserLoggedIn: Boolean,
-    onShowSnackbar: suspend (String, SnackbarAction, Throwable?) -> Boolean,
-    modifier: Modifier = Modifier,
-) {
-    // Splash should be the first route
-    val startDestination = Splash::class
-    
-    AppNavHost(
-        navController = navController,
-        startDestination = startDestination,
-        onShowSnackbar = onShowSnackbar,
-        modifier = modifier,
-    )
-}
+// AppNavHost has been moved to app module
+// See: app/src/main/kotlin/com/aristopharma/v2/compose/navigation/AppNavHost.kt
+//
+// This allows the app module to wire all feature screens without creating
+// circular dependencies between core/navigation and feature modules.

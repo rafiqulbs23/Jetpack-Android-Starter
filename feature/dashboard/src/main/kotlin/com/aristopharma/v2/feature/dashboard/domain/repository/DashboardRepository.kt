@@ -18,6 +18,8 @@ package com.aristopharma.v2.feature.dashboard.domain.repository
 
 import com.aristopharma.v2.feature.dashboard.data.model.DashboardSummary
 import com.aristopharma.v2.feature.dashboard.data.model.MenuPermission
+import com.aristopharma.v2.feature.dashboard.data.model.sync.FirstSyncResponse
+import com.aristopharma.v2.feature.dashboard.data.model.sync.TerritoryModel
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -72,5 +74,32 @@ interface DashboardRepository {
      * @return Result indicating success or failure.
      */
     suspend fun deleteUserData(empId: String): Result<Unit>
+    
+    /**
+     * Get territory items for an employee.
+     *
+     * @param empId Employee ID
+     * @return Result with list of territories or error
+     */
+    suspend fun getTerritoryItems(empId: String): Result<List<TerritoryModel>>
+    
+    /**
+     * Save first sync data to local database.
+     *
+     * @param data First sync response data
+     */
+    suspend fun saveFirstSyncData(data: FirstSyncResponse)
+    
+    /**
+     * Check if first sync has been completed.
+     *
+     * @return True if first sync is done, false otherwise
+     */
+    suspend fun isFirstSyncDone(): Boolean
+    
+    /**
+     * Delete all sync data from local database.
+     */
+    suspend fun deleteSyncData()
 }
 

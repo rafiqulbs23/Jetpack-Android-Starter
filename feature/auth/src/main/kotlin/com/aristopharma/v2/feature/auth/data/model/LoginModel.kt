@@ -12,6 +12,8 @@ data class LoginModel(
     val phoneNumber: String = "",
     val fcmToken: String = "",
     val empId: String = "",
+    val empName: String = "",
+    val mobileNo: String = "",
     val password: String = "",
     val accessToken: String = "",
     val refreshToken: String = "",
@@ -19,5 +21,7 @@ data class LoginModel(
     val isSignedUp: Boolean = false,
     val isLoggedIn: Boolean = false,
     val isFirstSync: Boolean = false,
+    val isFirstLogin: Boolean = false,
+    val userRoleType: String = "",
 )
 

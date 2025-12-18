@@ -162,6 +162,25 @@ fun NavController.navigateToDashboard(navOptions: NavOptions? = null) {
 }
 
 // ============================================================================
+// Attendance Route
+// ============================================================================
+
+/**
+ * Attendance route for check-in/check-out.
+ */
+@Serializable
+data object Attendance
+
+/**
+ * Navigate to the Attendance screen.
+ *
+ * @param navOptions Optional navigation options to configure the navigation behavior.
+ */
+fun NavController.navigateToAttendance(navOptions: NavOptions? = null) {
+    navigate(Attendance, navOptions)
+}
+
+// ============================================================================
 // Top Level Destinations
 // ============================================================================
 

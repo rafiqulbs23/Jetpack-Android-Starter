@@ -18,7 +18,7 @@ package com.aristopharma.v2.feature.dashboard.data.datasource.local
 
 import com.aristopharma.v2.feature.dashboard.data.model.DashboardSummary
 import com.aristopharma.v2.feature.dashboard.data.model.MenuPermission
-import com.aristopharma.v2.feature.dashboard.data.model.firstSync.FirstSyncData
+import com.aristopharma.v2.feature.dashboard.data.model.sync.FirstSyncResponse
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -51,7 +51,7 @@ interface DashboardLocalDataSource {
      *
      * @param firstSyncData The first sync data to save.
      */
-    suspend fun saveFirstSyncData(firstSyncData: FirstSyncData)
+    suspend fun saveFirstSyncData(firstSyncData: FirstSyncResponse)
 
     /**
      * Checks if there are pending order approvals.
@@ -64,5 +64,10 @@ interface DashboardLocalDataSource {
      * Clears login state (used for logout).
      */
     suspend fun clearLoginState()
+    
+    /**
+     * Deletes all sync data from local storage.
+     */
+    suspend fun deleteSyncData()
 }
 

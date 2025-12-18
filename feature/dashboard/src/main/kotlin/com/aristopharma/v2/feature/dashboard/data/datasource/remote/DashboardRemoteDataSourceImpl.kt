@@ -16,8 +16,8 @@
 
 package com.aristopharma.v2.feature.dashboard.data.datasource.remote
 
-import com.aristopharma.v2.feature.dashboard.data.datasource.remote.api.DashboardApiService
-import com.aristopharma.v2.feature.dashboard.data.model.firstSync.FirstSyncData
+import com.aristopharma.v2.feature.dashboard.data.model.sync.FirstSyncResponse
+import com.aristopharma.v2.feature.dashboard.data.model.sync.TerritoryModel
 import javax.inject.Inject
 
 /**
@@ -29,19 +29,28 @@ class DashboardRemoteDataSourceImpl @Inject constructor(
     private val apiService: DashboardApiService,
 ) : DashboardRemoteDataSource {
 
-    override suspend fun getFirstSync(empId: String): FirstSyncData? {
+    override suspend fun getFirstSync(empId: String): FirstSyncResponse? {
         return try {
             val response = apiService.getFirstSync(empId)
-            // TODO: Handle response validation and error cases
             response.data
         } catch (e: Exception) {
             null
         }
     }
+    
+    override suspend fun getTerritoryItems(empId: String): List<TerritoryModel> {
+        return try {
+            val response = apiService.getTerritoryItems(empId)
+            response.data ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
 
     override suspend fun deleteUserData(empId: String) {
         try {
-            apiService.deleteUserData(empId)
+            // TODO: Implement when API endpoint is available
+            // apiService.deleteUserData(empId)
         } catch (e: Exception) {
             // Handle error
         }

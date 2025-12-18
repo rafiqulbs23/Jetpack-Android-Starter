@@ -123,6 +123,7 @@ dependencies {
 
     // ... Features
     implementation(project(":feature:auth"))
+    implementation(project(":feature:dashboard"))
     implementation(project(":feature:home"))
     implementation(project(":feature:profile"))
     implementation(project(":feature:settings"))

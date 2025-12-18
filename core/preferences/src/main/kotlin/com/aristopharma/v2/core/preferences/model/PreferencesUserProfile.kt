@@ -29,7 +29,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class PreferencesUserProfile(
-    val id: String = String(),
-    val userName: String = String(),
+    val id: String = "",
+    val userName: String? = null,
+    val accessToken: String = "",
+    val refreshToken: String = "",
+    val fcmToken: String = "",
     val profilePictureUriString: String? = null,
 )

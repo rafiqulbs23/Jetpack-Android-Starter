@@ -16,7 +16,8 @@
 
 package com.aristopharma.v2.feature.dashboard.data.datasource.remote
 
-import com.aristopharma.v2.feature.dashboard.data.model.firstSync.FirstSyncData
+import com.aristopharma.v2.feature.dashboard.data.model.sync.FirstSyncResponse
+import com.aristopharma.v2.feature.dashboard.data.model.sync.TerritoryModel
 
 /**
  * Remote data source interface for dashboard operations.
@@ -28,7 +29,15 @@ interface DashboardRemoteDataSource {
      * @param empId The employee ID.
      * @return The first sync data, or null if request fails.
      */
-    suspend fun getFirstSync(empId: String): FirstSyncData?
+    suspend fun getFirstSync(empId: String): FirstSyncResponse?
+    
+    /**
+     * Gets territory items for an employee.
+     *
+     * @param empId The employee ID.
+     * @return List of territory models.
+     */
+    suspend fun getTerritoryItems(empId: String): List<TerritoryModel>
 
     /**
      * Deletes user data from the server.
