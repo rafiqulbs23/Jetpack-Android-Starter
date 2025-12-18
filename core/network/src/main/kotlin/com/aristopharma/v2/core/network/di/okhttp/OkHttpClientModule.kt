@@ -16,6 +16,7 @@
 
 package com.aristopharma.v2.core.network.di.okhttp
 
+import com.aristopharma.v2.core.network.auth.TokenAuthenticator
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,29 +41,32 @@ object OkHttpClientModule {
     private const val TIME_OUT = 60L
 
     /**
-     * Provides [OkHttpClient].
+     * Provides [OkHttpClient] with interceptors and token authenticator.
      *
-     * @param loggingInterceptor [HttpLoggingInterceptor].
-     * @return [OkHttpClient].
+     * @param loggingInterceptor [HttpLoggingInterceptor] for logging requests/responses.
+     * @param tokenAuthenticator [TokenAuthenticator] for automatic token refresh.
+     * @return [OkHttpClient] configured with timeouts, interceptors, and authenticator.
      */
     @Singleton
     @Provides
     fun provideOkHttpClient(
         loggingInterceptor: HttpLoggingInterceptor,
+        tokenAuthenticator: TokenAuthenticator,
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .connectTimeout(TIME_OUT, SECONDS)
             .readTimeout(TIME_OUT, SECONDS)
             .writeTimeout(TIME_OUT, SECONDS)
             .addInterceptor(loggingInterceptor)
+            .authenticator(tokenAuthenticator)
             .build()
     }
 
     /**
-     * Provides [Call.Factory].
+     * Provides [Call.Factory] for Coil image loading.
      *
-     * @param loggingInterceptor [HttpLoggingInterceptor].
-     * @return [Call.Factory].
+     * @param loggingInterceptor [HttpLoggingInterceptor] for logging.
+     * @return [Call.Factory] configured with timeouts and logging.
      */
     @Provides
     @Singleton

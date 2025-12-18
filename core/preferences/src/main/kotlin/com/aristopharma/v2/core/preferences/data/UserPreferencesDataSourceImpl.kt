@@ -18,13 +18,12 @@ package com.aristopharma.v2.core.preferences.data
 
 import androidx.datastore.core.DataStore
 import com.aristopharma.v2.core.di.IoDispatcher
-import com.aristopharma.v2.core.preferences.model.DarkThemeConfigPreferences
-import com.aristopharma.v2.core.preferences.model.PreferencesUserProfile
-import com.aristopharma.v2.core.preferences.model.UserDataPreferences
+import com.aristopharma.v2.core.preferences.model.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -115,4 +114,83 @@ internal class UserPreferencesDataSourceImpl @Inject constructor(
             datastore.updateData { UserDataPreferences() }
         }
     }
+    
+    // ========== App-Specific Method Implementations ==========
+    
+    override suspend fun setEmpId(empId: String) {
+        withContext(ioDispatcher) {
+            datastore.updateData { it.copy(empId = empId) }
+        }
+    }
+    
+    override fun getEmpId(): Flow<String> =
+        datastore.data.map { it.empId }.flowOn(ioDispatcher)
+    
+    override suspend fun setHasPendingOrderApproval(hasPending: Boolean) {
+        withContext(ioDispatcher) {
+            datastore.updateData { it.copy(hasPendingOrderApproval = hasPending) }
+        }
+    }
+    
+    override fun hasPendingOrderApproval(): Flow<Boolean> =
+        datastore.data.map { it.hasPendingOrderApproval }.flowOn(ioDispatcher)
+    
+    override suspend fun setEmployeeInfo(employeeInfo: EmployeeInfoPreferences) {
+        withContext(ioDispatcher) {
+            datastore.updateData { it.copy(employeeInfo = employeeInfo) }
+        }
+    }
+    
+    override fun getEmployeeInfo(): Flow<EmployeeInfoPreferences?> =
+        datastore.data.map { it.employeeInfo }.flowOn(ioDispatcher)
+    
+    override suspend fun updateSyncInfo(syncInfo: SyncInfoPreferences) {
+        withContext(ioDispatcher) {
+            datastore.updateData { it.copy(syncInfo = syncInfo) }
+        }
+    }
+    
+    override fun getSyncInfo(): Flow<SyncInfoPreferences> =
+        datastore.data.map { it.syncInfo }.flowOn(ioDispatcher)
+    
+    override suspend fun setFirstSyncDone(isDone: Boolean) {
+        withContext(ioDispatcher) {
+            datastore.updateData { 
+                it.copy(
+                    syncInfo = it.syncInfo.copy(isFirstSyncDone = isDone),
+                    dashboardSummary = it.dashboardSummary.copy(isFirstSyncDone = isDone)
+                )
+            }
+        }
+    }
+    
+    override fun isFirstSyncDone(): Flow<Boolean> =
+        datastore.data.map { it.syncInfo.isFirstSyncDone }.flowOn(ioDispatcher)
+    
+    override suspend fun updateAttendanceInfo(attendanceInfo: AttendancePreferences) {
+        withContext(ioDispatcher) {
+            datastore.updateData { it.copy(attendanceInfo = attendanceInfo) }
+        }
+    }
+    
+    override fun getAttendanceInfo(): Flow<AttendancePreferences> =
+        datastore.data.map { it.attendanceInfo }.flowOn(ioDispatcher)
+    
+    override suspend fun updateDashboardSummary(dashboardSummary: DashboardSummaryPreferences) {
+        withContext(ioDispatcher) {
+            datastore.updateData { it.copy(dashboardSummary = dashboardSummary) }
+        }
+    }
+    
+    override fun getDashboardSummary(): Flow<DashboardSummaryPreferences> =
+        datastore.data.map { it.dashboardSummary }.flowOn(ioDispatcher)
+    
+    override suspend fun updateMobileServer(mobileServer: MobileServerPreferences) {
+        withContext(ioDispatcher) {
+            datastore.updateData { it.copy(mobileServer = mobileServer) }
+        }
+    }
+    
+    override fun getMobileServer(): Flow<MobileServerPreferences> =
+        datastore.data.map { it.mobileServer }.flowOn(ioDispatcher)
 }
