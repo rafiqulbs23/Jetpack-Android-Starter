@@ -53,7 +53,6 @@ class DashboardViewModel @Inject constructor(
     val dashboardUiState = _dashboardUiState.asStateFlow()
 
     init {
-        setupModel()
         fetchMenuPermissions()
     }
 

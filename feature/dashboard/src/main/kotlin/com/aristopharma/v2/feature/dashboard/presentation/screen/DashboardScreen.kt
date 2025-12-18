@@ -73,6 +73,11 @@ fun DashboardScreen(
 ) {
     val uiState by dashboardViewModel.dashboardUiState.collectAsStateWithLifecycle()
 
+    // Trigger setup when screen is first displayed
+    LaunchedEffect(Unit) {
+        dashboardViewModel.onEvent(DashboardEvent.SetupModel)
+    }
+
     LaunchedEffect(uiState.data.isSyncSuccess) {
         uiState.data.isSyncSuccess.getContentIfNotHandled()?.let { success ->
             if (success) {

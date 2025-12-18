@@ -47,6 +47,7 @@ import javax.inject.Inject
 class SignInViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val fcmTokenManager: FcmTokenManager,
+    private val userPreferencesDataSource: com.aristopharma.v2.core.preferences.data.UserPreferencesDataSource,
 ) : ViewModel() {
 
 
@@ -387,6 +388,7 @@ class SignInViewModel @Inject constructor(
                 onSuccess = { response ->
                     loginModel = loginModel.copy(
                         empId = empId,
+                        empName = response.name,
                         accessToken = response.token,
                         refreshToken = response.refreshToken,
                         otp = response.otpCode?.toString() ?: "",
@@ -395,7 +397,18 @@ class SignInViewModel @Inject constructor(
                     )
 
                     authRepository.saveLoginModel(loginModel)
-                    // TODO: Clear shared preferences if needed
+                    
+                    // Save user profile to DataStore
+                    userPreferencesDataSource.setUserProfile(
+                        com.aristopharma.v2.core.preferences.model.PreferencesUserProfile(
+                            id = empId,
+                            userName = response.name,
+                            accessToken = response.token,
+                            refreshToken = response.refreshToken,
+                            fcmToken = fcmToken,
+                            profilePictureUriString = null
+                        )
+                    )
 
                     _signInUiState.update {
                         it.copy(
